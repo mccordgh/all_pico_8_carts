@@ -7,32 +7,53 @@ function _init()
 end
 
 function init_game_vars()
-
+    grav = 0.25
 end
 
 function init_ball_vars()
     ball = {}
-    ball.x = 16
+    ball.x = 840
     ball.y = 116
+    ball.w = 8
 end
--->8
+
 function _update()
     if (btn(1)) then
-        ball.x += 10
+        ball.x += 1
     end
 
     if (btn(0)) then
         ball.x -= 10
     end
 end
--->8
+
 function _draw()
     cls()
-    camera(ball.x - 64 < 0 and 0 or ball.x - 64)
+    set_camera()
 
     map(0, 0, 0, 0, 128, 16)
 
     spr(3, ball.x, ball.y)
+
+    debug_info()
+end
+
+function debug_info()
+    print("CAMERA X: " .. cam_x, cam_x + 10, 10, 15)
+    print("PLAYER X: " .. ball.x, cam_x + 10, 20, 15)
+end
+
+function set_camera()
+    if (ball.x - 64 < 0) then
+        cam_x = 0
+    else if (ball.x + ball.w > 966) then
+        cam_x = 894
+    else
+        cam_x = ball.x - 64
+    end
+    end
+
+    camera(cam_x, 0)
 end
 __gfx__
 00000000ccccccccbbbbbbbb00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
