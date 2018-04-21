@@ -7,6 +7,29 @@ function _init()
     init_player()
 end
 
+function init_game()
+    gravity = 0.15
+    wind = 0.15
+    friction = 0.05
+    meter_speed = .1
+    
+    power = 0
+    max_power = 18
+    draw_power = true
+    power_meter_speed = max_power * meter_speed
+    
+    lift = 0
+    max_lift = 6
+    draw_lift = true
+    lift_meter_speed = max_lift * meter_speed
+
+    landed = false
+    hitting_ball = false
+
+    state = hitting_state
+end
+
+
 function _update()
     state()
 end
@@ -19,17 +42,35 @@ function _draw()
 
     spr(3, ball.x, ball.y)
 
+        draw_meter_box()
+
+    if (draw_power) then
+        local power_percent = (power / max_power) * 100
+        if (power_percent > 100) then
+            power_percent = 100
+        end
+        print ("P O W E R ", 29, 58, 14)
+        rectfill(20, 50, 20 + (power_percent / 2), 56, 14)
+    end
+
+    if (draw_lift) then
+        local lift_percent = (lift / max_lift) * 100
+        if (lift_percent > 100) then
+            lift_percent = 100
+        end
+        print ("L", 19, 12, 9)
+        print ("I", 19, 20, 9)
+        print ("F", 19, 28, 9)
+        print ("T", 19, 36, 9)
+        rectfill(10, 56 - (lift_percent / 2), 16, 56, 9)
+    end 
+
     debug_info()
 end
 
-function init_game()
-    gravity = 0.15
-    wind = 0.15
-
-    landed = false
-    hitting_ball = false
-
-    state = hitting_state
+function draw_meter_box()
+    rectfill(8, 4, 72, 64, 0)
+    --print ("PRESS Z TO STOP", 39, 56, 15)    
 end
 
 function init_ball()
@@ -44,8 +85,8 @@ end
 
 function init_player()
     player = {}
-    player.power = 16
-    player.lift = 4
+    player.power = -1
+    player.lift = -1
 end
 
 function hitting_state()
@@ -60,12 +101,47 @@ function landed_state()
 
 end
 
-function not_hitting()
+function power_meter()
+    power += power_meter_speed
+
     if (btnp(4)) then
+        if (power > max_power) then
+            power = max_power
+        end
+        player.power = power
+    end
+
+    if (power >= max_power + (max_power * .05)) then
+        power = 0
+    end
+end
+
+function lift_meter()
+    lift += lift_meter_speed
+
+    if (btnp(4)) then
+        if (lift > max_lift) then
+            lift = max_lift
+        end
+        player.lift = lift
+    end
+
+    if (lift >= max_lift + (max_lift * .05)) then
+        lift = 0
+    end
+end
+
+function not_hitting()
+    if (player.power == -1) then
+        power_meter()
+    else if (player.lift == -1) then
+        lift_meter()
+    else
         hitting_ball = true
 
         ball.x_speed = player.power
         ball.y_speed = player.lift
+    end
     end
 end
 
@@ -85,10 +161,14 @@ function ball_collision()
         ball.y = 108
     end
 
-    if (ball.y == 108 and ball.x_speed == 0) then
-        hitting_ball = false
-        state = landed_state
-        ball.sprite = 4
+    if (ball.y == 108) then
+        if (ball.x_speed == 0) then
+            hitting_ball = false
+            state = landed_state
+            ball.sprite = 4
+        else
+            ball.x_speed -= friction
+        end
     end
 end
 
@@ -112,9 +192,11 @@ function apply_physics()
 end
 
 function debug_info()
-    print("camera x: " .. cam_x, cam_x + 10, 10, 15)
-    print("ball x: " .. ball.x .. ", y: " .. ball.y, cam_x + 10, 20, 15)
-    print("ball speed x: " .. ball.x_speed .. ", y: " .. ball.y_speed, cam_x + 10, 30, 15)
+    --print("camera x: " .. cam_x, cam_x + 10, 10, 15)
+    --print("ball x: " .. ball.x .. ", y: " .. ball.y, cam_x + 10, 20, 15)
+    --print("ball speed x: " .. ball.x_speed .. ", y: " .. ball.y_speed, cam_x + 10, 30, 15)
+    --print("POW: " .. power, cam_x + 10, 10, 15)
+    --print("LIFT: " .. lift, cam_x + 10, 20, 15)
 end
 
 function set_camera()
@@ -134,8 +216,8 @@ __gfx__
 00000000ccccccccbbbbbbbb000ff000000000003333333333333333333333333333333300000000000000000000000000000000000000000000000000000000
 00700700ccccccccbbbbbbbb00ffff00000870003333333b33333333333333333333333300000000000000000000000000000000000000000000000000000000
 00077000ccccccccbbbbbbbb0fff77f000088a003b3333b3b333333333333b333b33333300000000000000000000000000000000000000000000000000000000
-00077000ccccccccbbbbbbbb0ffff7f00808808033b33333333333b33b3333b33333333b00000000000000000000000000000000000000000000000000000000
-00700700ccccccccbbbbbbbbfffffffff088880f3333333333333333b33333333333333300000000000000000000000000000000000000000000000000000000
+00077000ccccccccbbbbbbbb0ffff7f00802808033b33333333333b33b3333b33333333b00000000000000000000000000000000000000000000000000000000
+00700700ccccccccbbbbbbbbfffffffff082880f3333333333333333b33333333333333300000000000000000000000000000000000000000000000000000000
 00000000ccccccccbbbbbbbb0ffffff00ff88ff03333333333333333333333333333333300000000000000000000000000000000000000000000000000000000
 00000000ccccccccbbbbbbbb00ffff0000ffff003333b33333333333333333333333333300000000000000000000000000000000000000000000000000000000
 00000000000000000000000000000000000000003333333333b3b333000000000000000000000000000000000000000000000000000000000000000000000000
