@@ -25,6 +25,7 @@ function init_game()
 
     landed = false
     hitting_ball = false
+    flapping = false
 
     state = hitting_state
 end
@@ -40,7 +41,7 @@ function _draw()
 
     map(0, 0, 0, 0, 128, 16)
 
-    spr(3, ball.x, ball.y)
+    spr(ball.sprite, ball.x, ball.y)
 
         draw_meter_box()
 
@@ -85,12 +86,12 @@ end
 
 function init_player()
     player = {}
-    player.power = -1
-    player.lift = -1
+    player.power = 10
+    player.lift = 4
 end
 
 function hitting_state()
-if (not hitting_ball) then
+if ((not hitting_ball) and (not landed)) then
         not_hitting()
     else
         hitting()
@@ -146,6 +147,10 @@ function not_hitting()
 end
 
 function hitting()
+    if (flapping and btnp(4) and (not landed)) then
+        flap()
+    end
+
     ball_collision()
     apply_ball_force()
     apply_physics()
@@ -164,22 +169,37 @@ function ball_collision()
     if (ball.y == 108) then
         if (ball.x_speed == 0) then
             hitting_ball = false
-            state = landed_state
-            ball.sprite = 4
         else
             ball.x_speed -= friction
         end
+    end
+
+    if ((not landed) and btnp(4)) then
+        flapping = true
+        ball.sprite = 4
+        flap()
     end
 end
 
 function apply_ball_force()
     ball.x += ball.x_speed
-    ball.y -= ball.y_speed
+
+    if (not landed) then
+        ball.y -= ball.y_speed
+    end
+end
+
+function flap()
+    ball.y_speed = 2
+    ball.x_speed = 6
 end
 
 function apply_physics()
     ball.x_speed -= wind
-    ball.y_speed -= gravity
+    
+    if (not landed) then
+        ball.y_speed -= gravity
+    end
 
     if (ball.x_speed < 0) then
         ball.x_speed = 0
@@ -188,15 +208,21 @@ function apply_physics()
     if (ball.y > 108) then
         ball.y_speed = 0
         ball.y = 108
+        landed = true
     end
 end
 
 function debug_info()
     --print("camera x: " .. cam_x, cam_x + 10, 10, 15)
     --print("ball x: " .. ball.x .. ", y: " .. ball.y, cam_x + 10, 20, 15)
-    --print("ball speed x: " .. ball.x_speed .. ", y: " .. ball.y_speed, cam_x + 10, 30, 15)
+    print("ball speed x: " .. ball.x_speed .. ", y: " .. ball.y_speed, cam_x + 10, 30, 15)
     --print("POW: " .. power, cam_x + 10, 10, 15)
     --print("LIFT: " .. lift, cam_x + 10, 20, 15)
+    if (landed) then
+        print("LANDED: TRUE", cam_x + 70, 20, 15)
+    else
+        print("LANDED: FALSE", cam_x + 70, 20, 15)
+    end
 end
 
 function set_camera()
