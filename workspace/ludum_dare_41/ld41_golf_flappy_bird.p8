@@ -163,7 +163,7 @@ function draw_trees()
 end
 
 function draw_menu()
-    print("golfy birdz", 50, 30, 15)
+    print("[insert title bub]", 50, 30, 15)
     print("press z to start", 40, 50, 15)
 end
 
@@ -314,7 +314,7 @@ function tree_collision()
             tree_collide = true
             ball.sprite = 3
             --FIX DELETION
-            --del(trees, tr)
+            del(trees, tr)
         end
 
         --if ((ball.y > tr.y) and (ball.y < tr.y + (tr.y_stretch - padd))) then
