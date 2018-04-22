@@ -313,7 +313,8 @@ function tree_collision()
         and (ball.y > tr.y) and (ball.y < tr.y + (tr.y_stretch - padd)) then
             tree_collide = true
             ball.sprite = 3
-            del(trees, tr)
+            --FIX DELETION
+            --del(trees, tr)
         end
 
         --if ((ball.y > tr.y) and (ball.y < tr.y + (tr.y_stretch - padd))) then
