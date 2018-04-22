@@ -27,6 +27,7 @@ function init_game()
     draw_lift = true
     lift_meter_speed = max_lift * meter_speed
 
+    do_draw_meter = true
     landed = false
     hitting_ball = false
     flapping = false
@@ -110,16 +111,36 @@ function draw_game()
     map(0, 0, 0, 0, 128, 16)
 
     sspr(player.sprite * 8, 0, 8, 8, player.x, player.y, 48, 48)
- 
-        draw_meter_box()
+
+    draw_trees()
+    
+    spr(ball.sprite, ball.x, ball.y)
+
+    if (do_draw_meter) then
+        draw_all_meters()
+    end
+    
+    debug_info()
+
+    if (collided) then
+        print("try again!!", cam_x + 60, 30, 8)
+    end
+
+    if (level_finish) then
+        print("you win, guy!!", cam_x + 60, 30, 11)
+    end
+end
+
+function draw_all_meters()
+    draw_meter_box()
 
     if (draw_power) then
         local power_percent = (power / max_power) * 100
         if (power_percent > 100) then
             power_percent = 100
         end
-        print ("p o w e r ", 29, 58, 14)
-        rectfill(20, 50, 20 + (power_percent / 2), 56, 14)
+        print ("p o w e r ", cam_x + 29, 58, 14)
+        rectfill(cam_x + 20, 50, cam_x + 20 + (power_percent / 2), 56, 14)
     end
 
     if (draw_lift) then
@@ -127,25 +148,12 @@ function draw_game()
         if (lift_percent > 100) then
             lift_percent = 100
         end
-        print ("l", 19, 12, 9)
-        print ("i", 19, 20, 9)
-        print ("f", 19, 28, 9)
-        print ("t", 19, 36, 9)
-        rectfill(10, 56 - (lift_percent / 2), 16, 56, 9)
+        print ("l", cam_x + 19, 12, 9)
+        print ("i", cam_x + 19, 20, 9)
+        print ("f", cam_x + 19, 28, 9)
+        print ("t", cam_x + 19, 36, 9)
+        rectfill(cam_x + 10, 56 - (lift_percent / 2), cam_x + 16, 56, 9)
     end 
-
-    draw_trees()
-    
-    spr(ball.sprite, ball.x, ball.y)
-    debug_info()
-
-    if (collided) then
-        print("game over, man!!", cam_x + 30, 60, 8)
-    end
-
-    if (level_finish) then
-        print("you win, guy!!", cam_x + 30, 60, 11)
-    end
 end
 
 function draw_trees()
@@ -160,7 +168,7 @@ function draw_menu()
 end
 
 function draw_meter_box()
-    rectfill(8, 4, 72, 64, 0)
+    rectfill(cam_x + 8, 4, cam_x + 72, 64, 0)
     --print ("press z to stop", 39, 56, 15)    
 end
 
@@ -177,8 +185,8 @@ end
 
 function init_player()
     player = {}
-    player.x = 4
-    player.y = 68
+    player.x = ball.x - 44
+    player.y = ball.y - 40
     player.sprite = 13
     player.frame_count = 0
     player.frame = 0
@@ -243,6 +251,8 @@ function not_hitting()
     else if (player.lift == -1) then
         lift_meter()
     else
+        lift = 0
+        power = 0
         swing_animate()
     end
     end
@@ -271,6 +281,7 @@ function swing_animate()
             player.sprite = 13
 
             hitting_ball = true
+            do_draw_meter = false
 
             ball.x_speed = player.power
             ball.y_speed = player.lift
@@ -281,6 +292,11 @@ end
 function hitting()
     if (flapping and btnp(4) and (not landed) and (not collided)) then
         flap()
+    end
+
+    if (landed and (collided or ball.x_speed == 0)) then
+        hitting_ball = false
+        landed = false
     end
 
     ball_collision()
@@ -317,6 +333,7 @@ function ball_collision()
     end
     
     if (tree_collide) then
+        init_player()
         collided = true
         ball.x_speed = 0
     end
@@ -329,6 +346,7 @@ function ball_collision()
     if (ball.y == 108) then
         if (ball.x_speed == 0) then
             hitting_ball = false
+            do_draw_meter = true
         else
             ball.x_speed -= friction
         end
@@ -390,8 +408,8 @@ function debug_info()
     --print("pow: " .. power, cam_x + 10, 10, 15)
     --print("lift: " .. lift, cam_x + 10, 20, 15)
     --print("landed: true", cam_x + 70, 20, 15)
-    print("x_hit: " .. to_string(x_hit), cam_x + 50, 50, 15)
-    print("y_hit: " .. to_string(y_hit), cam_x + 50, 70, 15)
+    --print("x_hit: " .. to_string(x_hit), cam_x + 50, 50, 15)
+    --print("y_hit: " .. to_string(y_hit), cam_x + 50, 70, 15)
 end
 
 function set_camera()
