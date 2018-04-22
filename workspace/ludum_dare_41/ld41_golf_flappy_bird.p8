@@ -6,6 +6,7 @@ function _init()
     init_game()
     init_ball()
     init_player()
+    init_player_start()
 end
 
 function init_game()
@@ -106,8 +107,6 @@ function _draw()
 end
 
 function draw_flag()
-    --sspr(17, 900, 0)
-    --sspr(33, 900, 8)
     sspr(8, 8, 8, 8, 1000, 4, 16, 16)
     x = 0
 
@@ -132,19 +131,47 @@ function draw_game()
 
     spr(ball.sprite, ball.x, ball.y)
 
-    if (do_draw_meter) then
+    if (do_draw_meter and (not level_finish)) then
         draw_all_meters()
+        draw_score()
     end
     
     debug_info()
 
-    if (collided) then
+    --[[if (collided) then
         print("try again!!", cam_x + 60, 30, 8)
-    end
+    end]]
 
     if (level_finish) then
-        print("you win, guy!!", cam_x + 60, 30, 11)
+        draw_final_score()
     end
+end
+
+function make_box(mx, my, mw, mh)
+    mx += cam_x
+    mw += cam_x
+    
+    --outer border
+    rectfill(mx - 3, my - 3, mw + 3, mh + 3, 13)
+
+    --middle border
+    rectfill(mx - 2, my - 2, mw + 2, mh + 2, 6)
+
+    --inner border
+    rectfill(mx - 1, my - 1, mw + 1, mh + 1, 13)
+    
+    --box
+    rectfill(mx, my, mw, mh, 0)
+end
+
+function draw_final_score()
+    print ("YOU WIN GUY", cam_x + 50, 64, 7)
+end
+
+function draw_score()
+    make_box(80, 7, 124, 22)
+    print("strokes: " .. player.strokes, cam_x + 81, 8, 7)
+    print("  flaps: " .. player.flaps, cam_x + 81, 16, 7)
 end
 
 function draw_all_meters()
@@ -155,8 +182,10 @@ function draw_all_meters()
         if (power_percent > 100) then
             power_percent = 100
         end
-        print ("p o w e r ", cam_x + 29, 58, 14)
-        rectfill(cam_x + 20, 50, cam_x + 20 + (power_percent / 2), 56, 14)
+        print ("p o w e r ", cam_x + 29, 58, 7)
+        if (power > -1) then
+            rectfill(cam_x + 20, 50, cam_x + 20 + (power_percent / 2), 56, 14)
+        end
     end
 
     if (draw_lift) then
@@ -164,11 +193,13 @@ function draw_all_meters()
         if (lift_percent > 100) then
             lift_percent = 100
         end
-        print ("l", cam_x + 19, 12, 9)
-        print ("i", cam_x + 19, 20, 9)
-        print ("f", cam_x + 19, 28, 9)
-        print ("t", cam_x + 19, 36, 9)
-        rectfill(cam_x + 10, 56 - (lift_percent / 2), cam_x + 16, 56, 9)
+        print ("l", cam_x + 19, 12, 7)
+        print ("i", cam_x + 19, 20, 7)
+        print ("f", cam_x + 19, 28, 7)
+        print ("t", cam_x + 19, 36, 7)
+        if (lift > -1) then
+            rectfill(cam_x + 10, 56 - (lift_percent / 2), cam_x + 16, 56, 9)
+        end
     end 
 end
 
@@ -184,8 +215,7 @@ function draw_menu()
 end
 
 function draw_meter_box()
-    rectfill(cam_x + 8, 4, cam_x + 72, 64, 0)
-    --print ("press z to stop", 39, 56, 15)    
+    make_box(8, 4, 72, 64)
 end
 
 function init_ball()
@@ -200,8 +230,7 @@ function init_ball()
     ball.sprite = 3
 end
 
-function init_player()
-    player = {}
+function reset_player_vars()
     player.x = ball.x - 44
     player.y = ball.y - 40
     player.sprite = 13
@@ -210,8 +239,18 @@ function init_player()
     player.frame_spd = 6
     player.power = -1
     player.lift = -1
+end
+
+function init_player()
+    player = {}
+    reset_player_vars()
     --player.power = max_power / 2
     --player.lift = max_lift / 2
+end
+
+function init_player_start()
+    player.strokes = 0
+    player.flaps = 0
 end
 
 function hitting_state()
@@ -268,8 +307,6 @@ function not_hitting()
     else if (player.lift == -1) then
         lift_meter()
     else
-        lift = 0
-        power = 0
         swing_animate()
     end
     end
@@ -296,9 +333,13 @@ function swing_animate()
 
         if (player.frame == 4) then
             player.sprite = 13
+            player.strokes += 1
 
             hitting_ball = true
             do_draw_meter = false
+
+            lift = 0
+            power = 0
 
             ball.x_speed = player.power
             ball.y_speed = player.lift
@@ -357,7 +398,7 @@ function ball_collision()
     end
     
     if (tree_collide) then
-        init_player()
+        reset_player_vars()
         collided = true
         ball.x_speed = 0
     end
@@ -393,6 +434,8 @@ function apply_ball_force()
 end
 
 function flap()
+    player.flaps += 1
+
     if (ball.y > 8) then
         ball.y_speed = 2
         ball.x_speed = 1.5
@@ -427,13 +470,14 @@ end
 
 function debug_info()
     --print("collided: " .. to_string(collided), cam_x + 50, 10, 15)
-    --print("ball x: " .. ball.x .. ", y: " .. ball.y, cam_x + 10, 20, 15)
+    print("ball x: " .. ball.x .. ", y: " .. ball.y, cam_x + 64, 94, 15)
     --print("ball speed x: " .. ball.x_speed .. ", y: " .. ball.y_speed, cam_x + 10, 30, 15)
     --print("pow: " .. power, cam_x + 10, 10, 15)
     --print("lift: " .. lift, cam_x + 10, 20, 15)
     --print("landed: true", cam_x + 70, 20, 15)
     --print("x_hit: " .. to_string(x_hit), cam_x + 50, 50, 15)
     --print("y_hit: " .. to_string(y_hit), cam_x + 50, 70, 15)
+    print("camera x: " .. cam_x, cam_x + 64, 100, 7)
 end
 
 function set_camera()
@@ -465,14 +509,14 @@ __gfx__
 333333b307777760000000000000000000000000424444f4444444440000000000000000c666666666666666666666666666666c000000000000000000000000
 33333b33007777600000000000000000000000004f442444244424420000000000000000cc6666666666666666666666666666cc000000000000000000000000
 033333300000775000000000000000000000000044244424442f44240000000000000000cccccccccccccccccccccccccccccccc000000000000000000000000
-03444f30000000600000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00441f00000000600000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00441f00000000600000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 00444f00000000600000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 00444f00000000600000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 00444f00000000600000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-040000f0000000600000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-4000000f000000600000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00444f00000000600000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00444f00000000600000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00444f00000000600000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00444f00000000600000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00444f00000000600000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 00000000000000600000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 00000000000000600000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 00000000000000600000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
@@ -501,4 +545,4 @@ __map__
 0707080708070807080708070807080708070807080708070807070807080708070807080708070807080708070807080708070807080708070807070807080708070807080708070807080708070708070807080708070807080708070807080708070807080708070708070807080707080708070807080707080708070807
 0605060506050606050605060506050605060506050605060506060506050605060506050605060506050605060605060506050605060506050605060506050605060506050605060506050605060506050605060506050606050605060506050605060506050605060506050605060506050506050605060506050605060506
 1615161516151616151615161516151615161516151615161516161516151615161516151615161516151615161615161516151615161516151615161516151615161516151615161516151615161516151615161516151616151615161516151615161516151615161516151615161516151516151615161516151615161516
-    spr(ball.sprite, ball.x, ball.y)
+00000000ba00000000e00ba000000ba000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
