@@ -289,14 +289,21 @@ function swing_animate()
     end
 end
 
+function reset_golfing_vars()
+    flapping = false
+    hitting_ball = false
+    landed = false
+    collided = false
+    tree_collide = false
+end
+
 function hitting()
     if (flapping and btnp(4) and (not landed) and (not collided)) then
         flap()
     end
 
     if (landed and (collided or ball.x_speed == 0)) then
-        hitting_ball = false
-        landed = false
+        reset_golfing_vars()
     end
 
     ball_collision()
@@ -313,7 +320,6 @@ function tree_collision()
         and (ball.y > tr.y) and (ball.y < tr.y + (tr.y_stretch - padd)) then
             tree_collide = true
             ball.sprite = 3
-            --FIX DELETION
             del(trees, tr)
         end
 
