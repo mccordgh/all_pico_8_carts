@@ -248,8 +248,11 @@ end
 
 function draw_menu()
     cls()
-    print("[insert title bub]", 50, 30, 15)
-    print("press z to start", 40, 50, 15)
+    print("Golden Beak", 32, 30, 7)
+    print("golf", 48, 40, 10)
+
+    print("press Z to start, swing, and", 0, 70, 7)
+    print("flap while egg is in the air", 0, 82, 7)
 end
 
 function draw_meter_box()
