@@ -248,11 +248,15 @@ end
 
 function draw_menu()
     cls()
-    print("Golden Beak", 32, 30, 7)
-    print("golf", 48, 40, 10)
+    print("Golden Beak", 33, 28, 7)
+    print("golf", 48, 38, 10)
 
     print("press Z to start, swing, and", 0, 70, 7)
     print("flap while egg is in the air", 0, 82, 7)
+
+    sspr(112, 0, 8, 8, 8, 39, 24, 24)
+    sspr(24, 0, 8, 8, 47, 47, 16, 16)
+    sspr(32, 0, 8, 8, 80, 47, 16, 16)
 end
 
 function draw_meter_box()
