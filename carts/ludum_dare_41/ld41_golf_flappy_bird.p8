@@ -74,7 +74,7 @@ function make_clouds(start_pos, cloud_spacing)
     local xx = start_pos
     local yy = rnd(64) + 18
 
-    while (xx < 1024) do
+    while (xx < 996) do
         yy = rnd(64) + 18
         local c = {}
 
