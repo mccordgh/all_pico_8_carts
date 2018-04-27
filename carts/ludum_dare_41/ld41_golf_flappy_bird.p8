@@ -27,12 +27,12 @@ function init_game()
     meter_speed = .05
     
     power = 0
-    max_power = 6
+    max_power = 4.5
     draw_power = true
     power_meter_speed = max_power * meter_speed
     
     lift = 0
-    max_lift = 7
+    max_lift = 6.25
     draw_lift = true
     lift_meter_speed = max_lift * meter_speed
 
@@ -250,7 +250,7 @@ function draw_final_score()
     print("course cleared!", cam_x + 35, 37, cleared_col)
     print("    par: " .. course_par, cam_x + 44, 48, 7)
     print("strokes: " .. player.strokes, cam_x + 44, 54, 7)
-    sspr(16, 8, 16, 24, 56 + cam_x, 68, 16, 24, false, thumb_flip)
+    sspr(16, 8, 16, 24, 56 + cam_x, 66, 16, 24, false, thumb_flip)
 
     make_box(20, 107, 108, 116)
     print("Press Z to try again.", cam_x + 24, 109, 7)
@@ -546,7 +546,6 @@ function hitting()
     end
 
     if (not flapping and not played_hit_sfx) then
-        printh("sfx 7")
         sfx(7)
         played_hit_sfx = true
     end
