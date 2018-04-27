@@ -45,11 +45,14 @@ function init_game()
     tree_collide = false
     catch_up_ball = false
 
+    make_menu_clouds()
     state = menu_state
     draw_state = draw_menu
 end
 
 function menu_state()
+    move_clouds()
+
     if (btnp(4)) then
         state = init_level
         draw_state = draw_game
@@ -60,14 +63,14 @@ function init_level()
     trees = {}
     make_trees(100, 60)
 
-    clouds = {}
-    make_clouds(18, 80)
+    make_clouds(18, 50)
 
     explosions = {}
     state = hitting_state
 end
 
 function make_clouds(start_pos, cloud_spacing)
+    clouds = {}
     local xx = start_pos
     local yy = rnd(64) + 18
 
@@ -85,6 +88,50 @@ function make_clouds(start_pos, cloud_spacing)
         xx += cloud_spacing
     end
 end
+
+function make_menu_clouds()
+    clouds = {}
+    local cloud_spacing = 40
+    local xx = 12
+    local yy = 8
+    local i = 0
+
+    while i < 3 do
+        local c1 = {}
+        local direction = rnd(1)
+
+        if (direction < .5) then
+            c1.direction = 0
+        else 
+            c1.directio = 1
+        end
+
+        c1.x = xx
+        c1.y = yy
+        c1.move_count = 0
+
+        add(clouds, c1)
+
+        local c2 = {}
+        direction = rnd(1)
+
+        if (direction < .5) then
+            c2.direction = 0
+        else 
+            c2.directio = 1
+        end
+
+        c2.x = xx
+        c2.y = 108 - yy
+        c2.move_count = 0
+
+        add(clouds, c2)
+
+        xx += cloud_spacing
+        i += 1
+    end
+end
+
 
 function make_trees(start_pos, x_spacing)
     local xx = start_pos
@@ -308,8 +355,10 @@ end
 
 function draw_menu()
     cls()
+    rectfill(0, 0, 128, 128, 1)
+    rect(1, 1, 126, 126, 13)
 
-    make_box(1, 1, 126, 126)
+    draw_clouds()
 
     print("golden beak", 41, 28, 7)
     print("golf", 56, 38, 10)
@@ -400,12 +449,12 @@ function update_explosions()
 end
 
 function move_clouds()
-    local wind_push = wind * 0.3
+    local wind_push = .5
 
     for c in all(clouds) do
         c.move_count += 1
 
-        if (c.move_count > 120) then
+        if (c.move_count > 60) then
             c.move_count = 0
             if (c.direction == 0) then
                 c.direction = 1
@@ -414,12 +463,14 @@ function move_clouds()
             end
         end
 
-        if (c.direction == 0) then
-            c.x += wind_push
-            c.y += wind_push
-        else
-            c.x -= wind_push
-            c.y -= wind_push
+        if (c.move_count % 10 == 0) then
+            if (c.direction == 0) then
+                c.x += wind_push
+                c.y += wind_push
+            else
+                c.x -= wind_push
+                c.y -= wind_push
+            end
         end
     end
 end
