@@ -28,7 +28,7 @@ foreground_sleep_ms 5 // number of milliseconds to sleep each frame. Try 10 to c
 
 background_sleep_ms 20 // number of milliseconds to sleep each frame when running in the background
 
-sessions 5 // number of times program has been run
+sessions 29 // number of times program has been run
 
 // (scancode) hold this key down and left-click to simulate right-click
 rmb_key 0 // 0 for none  226 for LALT
@@ -50,15 +50,15 @@ mix_buffer_size 1024 // usually 1024. Try 2048 if you get choppy sound
 
 // :: 
 
-version 0.1.11f
+version 0.1.11g
 
 
 // Location of pico-8's root folder
-root_path /Users/matthewmccord/Library/Application Support/pico-8/carts/carts/
+root_path /Users/matthewmccord/Library/Application Support/pico-8/carts/
 
 
 // Location of cartridge save data
-cdata_path /Users/matthewmccord/Library/Application Support/pico-8/carts/cdata/
+cdata_path /Users/matthewmccord/Library/Application Support/pico-8/cdata/
 
 
 // Specify which player index joystick control begins at (0..7)
@@ -92,4 +92,8 @@ show_backup_messages 1
 
 // 0 for off. 1 to allow control of a cart's framerate due to host machine's cpu capacity (recommended)
 host_framerate_control 1
+
+// filter splore content
+// 0 for no filter (18+)  1 medium (13+)  2 maximum (kid-friendly)
+content_filter 1
 
