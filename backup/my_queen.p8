@@ -2,9 +2,9 @@ pico-8 cartridge // http://www.pico-8.com
 version 16
 __lua__
 
-gravity = 0.5
-xMove = 0
-yMove = 0
+gravity = 0.25
+xmove = 0
+ymove = 0
 
 player = {
     x = 10,
@@ -12,7 +12,7 @@ player = {
     w = 8,
     h = 8,
     speed = 1,
-    jump_speed = 6,
+    jump_speed = -3,
     jumping = false,
     grounded = true,
 }
@@ -31,40 +31,40 @@ function _update()
     local collide_y = did_collide_y()
 
     if collide_x == false then
-        player.x = player.x + xMove
+        player.x = player.x + xmove
     end
 
     if collide_y == false then
-        if (player.grounded == false) then
-            yMove = yMove + gravity
+        ymove = ymove + gravity
 
-            player.y = player.y + yMove
-        end
+        -- if (player.grounded == false) then
+            player.y = player.y + ymove
+        -- end
     elseif collide_y == true then
-        yMove = 0
-
         player.grounded = true
         player.jumping = false
         player.y = (ground.y - player.h)
+
+        ymove = 0
     end
 
-    xMove = 0
-    -- if yMove < 0 then
-    --     yMove = 0
-    -- end
+    xmove = 0
+    if ymove < 0 then
+        ymove = 0
+    end
 end
 
 function get_input()
     if btn(0) then
-        xMove = -player.speed
+        xmove = -player.speed
     end
 
     if btn(1) then
-        xMove = player.speed
+        xmove = player.speed
     end
 
-    if btnp(2) and (player.jumping == false) then
-        yMove = -player.jump_speed
+    if btn(2) and (player.jumping == false) then
+        ymove = player.jump_speed
 
         player.jumping = true
         player.grounded = false
@@ -81,7 +81,7 @@ function did_collide_y()
     local collide_y = false
 
     if player.grounded == false then
-        if (player.y + player.h + yMove) >= ground.y then
+        if (player.y + player.h + ymove) >= ground.y then
             collide_y = true
         end
     end
@@ -90,7 +90,7 @@ function did_collide_y()
 end
 
 function debug_info()
-    print("yMove: " .. yMove, 0, 0)
+    print("ymove: " .. ymove, 0, 0)
     print("grounded: " .. (player.grounded and "true" or "false"), 0, 10)
     print("jumping: " .. (player.jumping and "true" or "false"), 0, 20)
     print("x: " .. player.x .. ", y: " .. player.y, 0, 30)
