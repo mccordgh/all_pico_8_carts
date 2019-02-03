@@ -25,7 +25,7 @@ matty = {
 charlie = {
     type = "charlie",
     sprite = 3,
-    x = 960,
+    x = 952,
     y = 88,
     w = 8,
     h = 8,
@@ -84,7 +84,9 @@ function make_heart(_x, _y)
         speed = 1,
     }
 
-    add(hearts, heart)
+    if rnd(1) >= 0.90 then
+        add(hearts, heart)
+    end
 end
 
 function make_enemy()
@@ -233,14 +235,15 @@ function did_collide_x()
         end
     end
 
+    local collide_with_matty = false
+
     if did_collide_with(matty) then
-        make_heart(matty.x, matty.y)
+        collide_with_matty = true
 
         you_win = true
     end
 
     if did_collide_with(charlie) then
-        make_heart(charlie.x, charlie.y)
 
         you_win = true
     end
@@ -288,6 +291,7 @@ function _draw()
     draw_stars()
     draw_matty_and_charles()
     draw_hearts()
+    draw_winning_things()
 end
 
 function draw_matty_and_charles()
@@ -321,8 +325,21 @@ function draw_scene()
     rect(0, 0, 127, 127, 14)
     local cell_size = 16
 
-    -- map(cam_x / cell_size, 0, cam_x, 0, cell_size, cell_size)
     map(0, 0, 0, 0, 128, 16)
+end
+
+function draw_winning_things()
+    if you_win == true then
+        local yy = 38
+
+        make_heart(matty.x + 4, matty.y - 8)
+        make_heart(charlie.x + 4, charlie.y - 8)
+
+        rectfill(cam_x, yy - 1, cam_x + 128, yy + 16 + 1, 8)
+        rectfill(cam_x + 1, yy, cam_x + 126, yy + 16, 14)
+        print("YOU FOUND MATTY AND CHARLIE!", cam_x + 4, 40, 0)
+        print("WE LOVE YOU, OUR QUEEN!!! <3", cam_x + 4, 48, 0)
+    end
 end
 
 __gfx__
