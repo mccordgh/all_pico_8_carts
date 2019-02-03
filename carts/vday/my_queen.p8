@@ -12,6 +12,12 @@ enemy_collide = false
 you_win = false
 player_disable_counter = 0
 hearts = {}
+enemies = {}
+stars = {}
+star_timer = 0
+enemy_timer = 0
+SPAWN_TIME = 60
+
 
 matty = {
     type = "matty",
@@ -34,12 +40,12 @@ charlie = {
 player = {
     type = "player",
     sprite = 1,
-    x = 932,
+    x = 32,
     y = 96-8,
     w = 8,
     h = 8,
     speed = 5,
-    jump_speed = 4,
+    jump_speed = 5,
     jumping = false,
     grounded = true,
 }
@@ -52,25 +58,7 @@ ground = {
 }
 
 function _init()
-    enemies = {}
 
-    add(enemies, make_enemy())
-    add(enemies, make_enemy())
-    add(enemies, make_enemy())
-    add(enemies, make_enemy())
-    add(enemies, make_enemy())
-    add(enemies, make_enemy())
-    add(enemies, make_enemy())
-
-    stars = {}
-
-    add(stars, make_star())
-    add(stars, make_star())
-    add(stars, make_star())
-    add(stars, make_star())
-    add(stars, make_star())
-    add(stars, make_star())
-    add(stars, make_star())
 end
 
 function make_heart(_x, _y)
@@ -90,13 +78,13 @@ function make_heart(_x, _y)
 end
 
 function make_enemy()
-    enemy_x = enemy_x + 300
+    local enemy_x = player.x + 128
 
     local enemy = {
         type = "enemy",
         sprite = 7,
         x = enemy_x,
-        y = player.y,
+        y = ground.y - 8,
         w = 8,
         h = 8,
         speed = 1,
@@ -106,13 +94,13 @@ function make_enemy()
 end
 
 function make_star()
-    star_x = star_x + 300
+    local star_x = player.x + 128
 
     local star = {
         type = "enemy",
         sprite = 9,
         x = star_x,
-        y = player.y - 12,
+        y = ground.y - 8 - 16,
         w = 8,
         h = 8,
         speed = 1,
@@ -122,12 +110,22 @@ function make_star()
 end
 
 function update_enemies()
+    if enemy_timer > SPAWN_TIME then
+        add(enemies, make_enemy())
+        enemy_timer = 0
+    end
+
     for enemy in all(enemies) do
         enemy.x = enemy.x - enemy.speed
     end
 end
 
 function update_stars()
+    if star_timer > SPAWN_TIME then
+        add(stars, make_star())
+        star_timer = 0
+    end
+
     for star in all(stars) do
         star.x = star.x - star.speed
     end
@@ -142,6 +140,9 @@ end
 
 
 function _update()
+    star_timer = star_timer + 0.5
+    enemy_timer = enemy_timer + 1
+
     if enemy_collide == true then
         player_disable_counter = player_disable_counter + 1
         player.sprite = 17
@@ -181,9 +182,7 @@ function _update()
     end
 
     xMove = 0
-    -- if yMove < 0 then
-    --     yMove = 0
-    -- end
+
     update_camera()
 end
 
