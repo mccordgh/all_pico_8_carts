@@ -11,12 +11,12 @@ star_x = 150
 enemy_collide = false
 you_win = false
 player_disable_counter = 0
-
+hearts = {}
 
 matty = {
     type = "matty",
     sprite = 5,
-    x = 1942,
+    x = 968,
     y = 88,
     w = 8,
     h = 8,
@@ -25,7 +25,7 @@ matty = {
 charlie = {
     type = "charlie",
     sprite = 3,
-    x = 1934,
+    x = 960,
     y = 88,
     w = 8,
     h = 8,
@@ -34,11 +34,11 @@ charlie = {
 player = {
     type = "player",
     sprite = 1,
-    x = 32,
+    x = 932,
     y = 96-8,
     w = 8,
     h = 8,
-    speed = 3,
+    speed = 5,
     jump_speed = 4,
     jumping = false,
     grounded = true,
@@ -71,6 +71,20 @@ function _init()
     add(stars, make_star())
     add(stars, make_star())
     add(stars, make_star())
+end
+
+function make_heart(_x, _y)
+    local heart = {
+        type = "heart",
+        sprite = 11,
+        x = _x,
+        y = _y,
+        w = 8,
+        h = 8,
+        speed = 1,
+    }
+
+    add(hearts, heart)
 end
 
 function make_enemy()
@@ -117,6 +131,14 @@ function update_stars()
     end
 end
 
+function update_hearts()
+    for heart in all(hearts) do
+        heart.x = heart.x + (rnd(8) - 4)
+        heart.y = heart.y - heart.speed
+    end
+end
+
+
 function _update()
     if enemy_collide == true then
         player_disable_counter = player_disable_counter + 1
@@ -131,6 +153,7 @@ function _update()
         player_disable_counter = 0
     end
 
+    update_hearts()
     update_stars()
     update_enemies()
 
@@ -192,7 +215,7 @@ end
 function did_collide_x()
     local collide_x = false
 
-    if player.x + xMove < 8 or player.x + xMove > 1990 then
+    if player.x + xMove < 8 or player.x + xMove > 976 then
         collide_x = true
     end
 
@@ -210,7 +233,15 @@ function did_collide_x()
         end
     end
 
-    if did_collide_with(matty) or did_collide_with(charlie) then
+    if did_collide_with(matty) then
+        make_heart(matty.x, matty.y)
+
+        you_win = true
+    end
+
+    if did_collide_with(charlie) then
+        make_heart(charlie.x, charlie.y)
+
         you_win = true
     end
 
@@ -238,11 +269,12 @@ function did_collide_y()
 end
 
 function debug_info()
-    print("yMove: " .. yMove, cam_x + 10, 50)
-    print("grounded: " .. (player.grounded and "true" or "false"), cam_x + 10, 10)
-    print("jumping: " .. (player.jumping and "true" or "false"), cam_x + 10, 20)
-    print("x: " .. player.x .. ", y: " .. player.y, cam_x + 10, 30)
-    print("cam_x: " .. cam_x .. " / " .. (cam_x / 16), cam_x + 10, 40)
+    -- print("yMove: " .. yMove, cam_x + 10, 50)
+    print("cam_x, 0: " .. cam_x .. ", 0", cam_x + 10, 10)
+    -- print("grounded: " .. (player.grounded and "true" or "false"), cam_x + 10, 10)
+    -- print("jumping: " .. (player.jumping and "true" or "false"), cam_x + 10, 20)
+    -- print("x: " .. player.x .. ", y: " .. player.y, cam_x + 10, 30)
+    -- print("cam_x: " .. cam_x .. " / " .. (cam_x / 16), cam_x + 10, 40)
 end
 
 function _draw()
@@ -255,6 +287,7 @@ function _draw()
     draw_enemies()
     draw_stars()
     draw_matty_and_charles()
+    draw_hearts()
 end
 
 function draw_matty_and_charles()
@@ -274,6 +307,12 @@ function draw_enemies()
     end
 end
 
+function draw_hearts()
+    for heart in all(hearts) do
+        spr(heart.sprite, heart.x, heart.y)
+    end
+end
+
 function draw_player()
     spr(player.sprite, player.x, player.y)
 end
@@ -282,7 +321,8 @@ function draw_scene()
     rect(0, 0, 127, 127, 14)
     local cell_size = 16
 
-    map(cam_x / cell_size, 0, cam_x, 0, cell_size, cell_size)
+    -- map(cam_x / cell_size, 0, cam_x, 0, cell_size, cell_size)
+    map(0, 0, 0, 0, 128, 16)
 end
 
 __gfx__
