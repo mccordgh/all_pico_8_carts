@@ -22,6 +22,8 @@ MAX_X = 992
 blue_check_sprite = 64
 red_check_sprite = 65
 
+collider = ""
+
 ground = {
     x = 0,
     y = 104,
@@ -277,19 +279,29 @@ end
 
 function did_collide_y()
     local collide_y = false
+    local cell_size = 8
+    local next_y = player.y + player.h + yMove
 
-    if player.grounded == false then
-        if (player.y + player.h + yMove) >= ground.y then
-            collide_y = true
-        end
+    local block = mget(flr(player.x / cell_size), flr(next_y / cell_size))
+    local is_solid = fget(block, 3)
+
+    if fget(block, 3) then
+        collide_y = true
     end
+
+    -- if player.grounded == false then
+    --     if (player.y + player.h + yMove) >= ground.y then
+    --         collide_y = true
+    --     end
+    -- end
 
     return collide_y
 end
 
 function debug_info()
     -- print("yMove: " .. yMove, cam_x + 10, 50)
-    print("cam_x, 0: " .. cam_x .. ", 0", cam_x + 10, 10, 7)
+    print("collider: " .. collider, cam_x + 20, 20, 11)
+    print("cam_x, 0: " .. cam_x .. ", 0", cam_x + 10, 10, 11)
     -- print("grounded: " .. (player.grounded and "true" or "false"), cam_x + 10, 10)
     -- print("jumping: " .. (player.jumping and "true" or "false"), cam_x + 10, 20)
     -- print("x: " .. player.x .. ", y: " .. player.y, cam_x + 10, 10, 4)
@@ -309,7 +321,6 @@ function _draw()
     draw_background()
 
     draw_player()
-    debug_info()
 
     draw_scene()
     draw_matty_and_charles()
@@ -322,6 +333,7 @@ function _draw()
 
     draw_foreground()
     draw_winning_things()
+    debug_info()
 end
 
 function draw_matty_and_charles()
@@ -452,7 +464,7 @@ __gfx__
 22112211221122112211221122112211000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 22112211221122112211221122112211000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 __gff__
-0000000000000000000000000003000000000000000606060600000000000000000000000006060606000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+000000000000000000000000000b000000000000000606060600000000000000000000000006060606000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 __map__
 0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0000
