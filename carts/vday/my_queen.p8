@@ -2,7 +2,7 @@ pico-8 cartridge // http://www.pico-8.com
 version 16
 __lua__
 
-gravity = 0.15
+gravity = 0.2
 xMove = 0
 yMove = 0
 cam_x = 0
@@ -23,6 +23,7 @@ MAX_SPRITES = 2
 FRAME_CHANGE_NUMBER = 10
 blue_check_sprite = 64
 red_check_sprite = 65
+reposition_y = 0
 
 ground = {
     x = 0,
@@ -35,7 +36,7 @@ function _init()
     local player_speed = 1
     -- local player_speed = 10
 
-    player = make_entity("player", 1, 24, ground.y - 8, 8, 8, player_speed, 2.4)
+    player = make_entity("player", 1, 24, ground.y - 8, 8, 8, player_speed, 2.8)
     matty = make_entity("matty", 5, 961, ground.y-8, 8, 8, 1, 1)
     charlie = make_entity("charlie", 3, 952, ground.y-8, 8, 8, 1, 1)
 end
@@ -143,6 +144,8 @@ end
 
 
 function _update()
+    xMove = 0
+
     if you_win == false then
         star_timer = star_timer + 1
         enemy_timer = enemy_timer + 1
@@ -162,8 +165,8 @@ function _update()
     end
 
     update_hearts()
-    -- update_stars()
-    -- update_enemies()
+    update_stars()
+    update_enemies()
     update_frames(charlie)
     update_frames(matty)
 
@@ -190,8 +193,6 @@ function _update()
         reset_player_jump()
     end
 
-    xMove = 0
-
     update_camera()
 end
 
@@ -199,7 +200,14 @@ function reset_player_jump()
     yMove = 0
     player.jumping = false
 
-    player.y = flr(player.y / 8) * 8
+    reposition_y = player.y / 8
+    local get_decimals = reposition_y - flr(reposition_y)
+
+    if get_decimals < 0.5 then
+        player.y = flr(player.y / 8) * 8
+    else
+        player.y = ceil(player.y / 8) * 8
+    end
 end
 
 function update_camera()
@@ -318,9 +326,11 @@ function will_hit_block_y()
     end
 
     local block_y = mget(flr(player.x / cell_size), flr(next_y / cell_size))
-    local y_is_solid = fget(block, 3)
+    local block_y_right = mget(flr(player.x / cell_size) + 1, flr(next_y / cell_size))
+    local y_is_solid = fget(block_y, 3)
+    local y_right_is_solid = fget(block_y_right, 3)
 
-    return y_is_solid
+    return y_is_solid or y_right_is_solid
 end
 
 function did_collide_y()
@@ -340,15 +350,29 @@ function did_collide_y()
 end
 
 function debug_info()
-    -- print("yMove: " .. yMove, cam_x + 10, 50)
+    debug_y_pos = 18
+    debug_x_pos = 10
+
+    debug_print("xMove: " ..xMove)
+    -- debug_print("yMove: " .. yMove)
+    -- debug_print("block_below: " .. (block_below and "true" or "false"))
+    -- debug_print("jumping: " .. (player.jumping and "true" or "false"))
+    -- debug_print("Y: " .. player.y)
+    -- debug_print("ceil: " ..ceil(player.y / 8) * 8)
+    -- debug_print("repos_y: " ..reposition_y)
     -- print("cam_x, 0: " .. cam_x .. ", 0", cam_x + 10, 10, 11)
-    -- print("block_below: " .. (block_below and "true" or "false"), cam_x + 10, 24, 7)
     -- print("Y: " .. player.y, cam_x + 10, 30, 7)
     -- print("Y / 8: " ..(player.y / 8), cam_x + 10, 36, 7)
     -- print("flr: " ..flr(player.y / 8) * 8, cam_x + 10, 36, 7)
     -- print("yMove: " .. yMove, cam_x + 10, 36, 7)
     -- print("jumping: " .. (player.jumping and "true" or "false"), cam_x + 10, 42, 7)
     -- print("cam_x: " .. cam_x .. " / " .. (cam_x / 16), cam_x + 10, 40)
+end
+
+function debug_print(wat)
+    debug_y_pos = debug_y_pos + 6
+
+    print(wat, cam_x + debug_x_pos, debug_y_pos, 7)
 end
 
 function draw_background()
@@ -373,13 +397,30 @@ function _draw()
     draw_hearts()
 
     if you_win == false then
+        draw_cage()
         draw_enemies()
         draw_stars()
     end
 
     draw_foreground()
-    draw_winning_things()
+
+    if you_win == true then
+        draw_winning_things()
+    end
+
     debug_info()
+end
+
+function draw_cage()
+    spr(18, charlie.x - 8, charlie.y - 8) -- cage left top
+    spr(19, charlie.x, charlie.y - 8) -- cage middle top
+    spr(19, matty.x - 1, matty.y - 8) -- cage middle top
+    spr(20, matty.x + 8 - 1, matty.y - 8) -- cage right top
+
+    spr(34, charlie.x - 8, charlie.y) -- cage left bottom
+    spr(35, charlie.x, charlie.y) -- cage middle bottom
+    spr(35, matty.x - 1, matty.y) -- cage middle bottom
+    spr(36, matty.x + 8 - 1, matty.y) -- cage right bottom
 end
 
 function draw_matty_and_charles()
@@ -406,7 +447,9 @@ function draw_hearts()
 end
 
 function draw_player()
-    spr(player.sprite, player.x, player.y)
+    local flip_x = xMove < 0
+
+    spr(player.sprite, player.x, player.y, 1, 1, flip_x)
 end
 
 function draw_scene()
@@ -420,28 +463,15 @@ function draw_foreground()
 end
 
 function draw_winning_things()
-    if you_win == false then
-        -- 34, 35, 36
-        spr(18, charlie.x - 8, charlie.y - 8) -- cage left top
-        spr(19, charlie.x, charlie.y - 8) -- cage middle top
-        spr(19, matty.x - 1, matty.y - 8) -- cage middle top
-        spr(20, matty.x + 8 - 1, matty.y - 8) -- cage right top
+    local yy = 38
 
-        spr(34, charlie.x - 8, charlie.y) -- cage left bottom
-        spr(35, charlie.x, charlie.y) -- cage middle bottom
-        spr(35, matty.x - 1, matty.y) -- cage middle bottom
-        spr(36, matty.x + 8 - 1, matty.y) -- cage right bottom
-    else
-        local yy = 38
+    make_heart(matty.x + 4, matty.y - 8)
+    make_heart(charlie.x + 4, charlie.y - 8)
 
-        make_heart(matty.x + 4, matty.y - 8)
-        make_heart(charlie.x + 4, charlie.y - 8)
-
-        rectfill(cam_x, yy - 1, cam_x + 128, yy + 16 + 1, 8)
-        rectfill(cam_x + 1, yy, cam_x + 126, yy + 16, 14)
-        print("YOU FOUND MATTY AND CHARLIE!", cam_x + 4, 40, 0)
-        print("WE LOVE YOU, OUR QUEEN!!! <3", cam_x + 4, 48, 0)
-    end
+    rectfill(cam_x, yy - 1, cam_x + 128, yy + 16 + 1, 8)
+    rectfill(cam_x + 1, yy, cam_x + 126, yy + 16, 14)
+    print("YOU FOUND MATTY AND CHARLIE!", cam_x + 4, 40, 0)
+    print("WE LOVE YOU, OUR QUEEN!!! <3", cam_x + 4, 48, 0)
 end
 
 __gfx__
@@ -515,9 +545,9 @@ __map__
 0d000000000000000000000000000025002500000000000000000000000000250000000000000000000000000000002500250000000000000000000000000025000000000000000000000000000000250025000000000000000000000000002500000000000000000000000000002500250000000000000000000000000d0d0d
 0d000000000000160000000000000026002600000000000017000000000000260000000000000015000000000000002600260000000000001600000000000026000000000000001700000000000000260026000000000000150000000000002600000000000000001600000000002600260000000000000000000000000d0d0d
 0d000000000000280000000000000026002600000000000028000000000000260000000000000028000000000000002600260000000000002800000000000026000000000000002800000000000000260026000000000000280000000000002600000000000000002800000000002600260000000000000000000000000d0d0d
-0d000000000000260000000000000025002500000000000026000000000000250000000000000026000000000000002500250000000000002600000000000025000000000000002600000000000000250025000000000000260000000000002500000000000000002600000000002500250000000000000000000000000d0d0d
-0d0d00000000000d0000000000000026002600000000000025000000000000260000000000000025000000000000002600260000000000002500000000000026000000000000002500000000000000260026000000000000250000000000002600000000000000002500000000002600260000000000000000000000000d0d0d
-0d0d0d0000000d0d0000000000000025002500000000000025000000000000250000000000000025000000000000002500250000000000002500000000000025000000000000002500000000000000250025000000000000250000000000002500000000000000002500000000002500250000000000000000000000000d0d0d
+0d00000000000026000000000d000025002500000000000026000000000000250000000000000026000000000000002500250000000000002600000000000025000000000000002600000000000000250025000000000000260000000000002500000000000000002600000000002500250000000000000000000000000d0d0d
+0d0d0000000000250000000d0d000026002600000000000025000000000000260000000000000025000000000000002600260000000000002500000000000026000000000000002500000000000000260026000000000000250000000000002600000000000000002500000000002600260000000000000000000000000d0d0d
+0d0d0d00000000250000000d0d0d0025002500000000000025000000000000250000000000000025000000000000002500250000000000002500000000000025000000000000002500000000000000250025000000000000250000000000002500000000000000002500000000002500250000000000000000000000000d0d0d
 0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d
 0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d
 0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d
