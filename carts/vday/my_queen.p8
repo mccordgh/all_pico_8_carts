@@ -427,7 +427,7 @@ function debug_info()
     debug_y_pos = 18
     debug_x_pos = 10
 
-    debug_print("cam: " ..cam_x ..", " ..cam_y)
+    -- debug_print("cam: " ..cam_x ..", " ..cam_y)
     debug_print("player: " ..player.x ..", " ..player.y)
     -- debug_print("ymove: " .. ymove)
     -- debug_print("block_below: " .. (block_below and "true" or "false"))
@@ -445,7 +445,7 @@ end
 function draw_background()
     rectfill(cam_x, 0, cam_x + 128, 196, 1)
     rectfill(cam_x, 360, cam_x + 128, 512, 1)
-    rectfill(104*8, 45*8, 128*8, 64*8, 12)
+    rectfill(832, 360, 1024, 512, 12)
     map(0, 16, 0, 0, 128, 64, 0)
     map(0, 16, 0, 48*8, 100, 64, 0)
 end
@@ -529,6 +529,11 @@ end
 
 function draw_foreground()
     map(0, 0, 0, 0, 128, 64, 4)
+    rectfill(898, 468, 936, 476, 4)
+    rect(898, 468, 936, 476, 0)
+    rectfill(916, 476, 920, 488, 4)
+    rect(916, 476, 920, 488, 0)
+    print("<-CASTLE", 902, 470, 00)
 end
 
 function draw_winning_things()
