@@ -5,7 +5,9 @@ __lua__
 gravity = 0.2
 xmove = 0
 ymove = 0
+bottom_screen_cam_y = 48*8
 cam_x = 0
+cam_y = bottom_screen_cam_y
 enemy_x = 0
 star_x = 150
 enemy_collide = false
@@ -33,7 +35,7 @@ ground = {
 }
 
 function _init()
-    music(0)
+    -- music(0)
     local player_speed = 1
     -- local player_speed = 10
 
@@ -45,14 +47,17 @@ function _init()
     door = make_entity("door", 9, 121*8, 60*8, 8, 8, 1, 1)
     door.teleport_to_x = 4*8
     door.teleport_to_y = 15*8
+    door.cam_y_to = 0
 
     door2 = make_entity("door", 9, 4*8, 16*8, 8, 8, 1, 1)
     door2.teleport_to_x = 121*8
     door2.teleport_to_y = 61*8
+    door2.cam_y_to = bottom_screen_cam_y
 
     door3 = make_entity("door", 9, 3*8, 16*8, 8, 8, 1, 1)
     door3.teleport_to_x = 120*8
     door3.teleport_to_y = 61*8
+    door3.cam_y_to = bottom_screen_cam_y
 end
 
 function make_entity(_type, _sprite, _x, _y, _w, _h, _speed, _jump_speed)
@@ -225,7 +230,7 @@ end
 
 function update_camera()
     cam_x = player.x - 32
-    cam_y = player.y - 96
+    -- cam_y = player.y - 96
 
     if cam_x < 0 then
         cam_x = 0
@@ -272,11 +277,22 @@ function did_collide_x()
     if did_collide_with(door) then
         player.x = door.teleport_to_x
         player.y = door.teleport_to_y
+
+        cam_y = door.cam_y_to
     end
 
     if did_collide_with(door2) then
         player.x = door2.teleport_to_x
         player.y = door2.teleport_to_y
+
+        cam_y = door2.cam_y_to
+    end
+
+    if did_collide_with(door3) then
+        player.x = door3.teleport_to_x
+        player.y = door3.teleport_to_y
+
+        cam_y = door3.cam_y_to
     end
 
     for enemy in all(enemies) do
@@ -297,7 +313,7 @@ function did_collide_x()
         you_win_dude()
     end
 
-    if xmove > 0 and will_hit_block_x() then
+    if xmove != 0 and will_hit_block_x() then
         collide_x = true
     end
 
@@ -372,12 +388,6 @@ function did_collide_y()
         collide_y = true
     end
 
-    -- if player.grounded == false then
-    --     if (player.y + player.h + ymove) >= ground.y then
-    --         collide_y = true
-    --     end
-    -- end
-
     return collide_y
 end
 
@@ -392,14 +402,6 @@ function debug_info()
     -- debug_print("jumping: " .. (player.jumping and "true" or "false"))
     -- debug_print("y: " .. player.y)
     -- debug_print("ceil: " ..ceil(player.y / 8) * 8)
-    -- debug_print("repos_y: " ..reposition_y)
-    -- print("cam_x, 0: " .. cam_x .. ", 0", cam_x + 10, 10, 11)
-    -- print("y: " .. player.y, cam_x + 10, 30, 7)
-    -- print("y / 8: " ..(player.y / 8), cam_x + 10, 36, 7)
-    -- print("flr: " ..flr(player.y / 8) * 8, cam_x + 10, 36, 7)
-    -- print("ymove: " .. ymove, cam_x + 10, 36, 7)
-    -- print("jumping: " .. (player.jumping and "true" or "false"), cam_x + 10, 42, 7)
-    -- print("cam_x: " .. cam_x .. " / " .. (cam_x / 16), cam_x + 10, 40)
 end
 
 function debug_print(wat)
@@ -409,14 +411,9 @@ function debug_print(wat)
 end
 
 function draw_background()
-    rectfill(cam_x, 0, cam_x + 196, 128, 1)
-    map(0, 16, 0, 0, 128, 64, 0)
+    rectfill(cam_x, 0, cam_x + 128, 196, 1)
 
-    -- for y = 0, 2, 1 do
-    --     for x = 0, 30, 1 do
-    --         sspr(0, 32, 32, 32, 8 * (x * 4) + 8, 8 * (y * 4) + 8)
-    --     end
-    -- end
+    map(0, 16, 0, 0, 128, 64, 0)
 end
 
 function _draw()
