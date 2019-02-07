@@ -37,7 +37,7 @@ function _init()
     local player_speed = 1
     -- local player_speed = 10
 
-    player = make_entity("player", 1, 24, ground.y - 8, 8, 8, player_speed, 2.8)
+    player = make_entity("player", 1, 24, ground.y-8, 8, 8, player_speed, 2.8)
     matty = make_entity("matty", 5, 961, ground.y-8, 8, 8, 1, 1)
     charlie = make_entity("charlie", 3, 952, ground.y-8, 8, 8, 1, 1)
 end
@@ -213,6 +213,7 @@ end
 
 function update_camera()
     cam_x = player.x - 32
+    cam_y = player.y - 96
 
     if cam_x < 0 then
         cam_x = 0
@@ -222,7 +223,15 @@ function update_camera()
         cam_x = 880
     end
 
-    camera(cam_x, 0)
+    if cam_y < 0 then
+        cam_y = 0
+    end
+
+    if cam_y > 880 then
+        cam_y = 880
+    end
+
+    camera(cam_x, cam_y)
 end
 
 function get_input()
@@ -354,7 +363,7 @@ function debug_info()
     debug_y_pos = 18
     debug_x_pos = 10
 
-    debug_print("xmove: " ..xmove)
+    debug_print("cam_y: " ..cam_y)
     -- debug_print("ymove: " .. ymove)
     -- debug_print("block_below: " .. (block_below and "true" or "false"))
     -- debug_print("jumping: " .. (player.jumping and "true" or "false"))
