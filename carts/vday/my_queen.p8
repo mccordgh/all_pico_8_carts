@@ -27,7 +27,7 @@ frame_change_number = 10
 blue_check_sprite = 64
 red_check_sprite = 65
 reposition_y = 0
-browser_yMove = 0
+browser_ymove = 0
 
 ground = {
     x = 0,
@@ -42,13 +42,15 @@ function _init()
     -- local player_speed = 10
 
 
-    player = make_entity("player", 1, 124*8, 60*8, 8, 8, player_speed, 2.8) -- bottom right (start)
+    player = make_entity("player", 1, 125*8, 60*8, 8, 8, player_speed, 2.8) -- bottom right (start)
     -- player = make_entity("player", 1, 10*8, 60*8, 8, 8, player_speed, 2.8) -- bottom left
     -- player = make_entity("player", 1, 108*8, ground.y-32, 8, 8, player_speed, 2.8) -- top right
     -- player = make_entity("player", 1, 64, ground.y-32, 8, 8, player_speed, 2.8) -- top left
-    matty = make_entity("matty", 5, 961, ground.y-8, 8, 8, 1, 1)
-    charlie = make_entity("charlie", 3, 952, ground.y-8, 8, 8, 1, 1)
+    matty = make_entity("matty", 5, 121*8, 60*8, 8, 8, 1, 1)
+    charlie = make_entity("charlie", 3, 120*8, 60*8, 8, 8, 1, 1)
     browser = make_entity("browser", 49, 920, 96, 8, 8, 1, 4)
+    -- matty later x,y 961, ground.y-8
+    -- charlie later 952, ground.y-8
 
     door_x = 4*8
     door_y = 48*8
@@ -71,6 +73,29 @@ function _init()
     door3.teleport_to_x = door_x
     door3.teleport_to_y = door_y + 8
     door3.cam_y_to = bottom_screen_cam_y
+
+    update_state = _update_intro
+    draw_state = _draw_main
+end
+
+function _draw()
+    draw_state()
+end
+
+function _update()
+    update_state()
+end
+
+function _update_intro()
+    update_frames(player)
+    update_frames(charlie)
+    update_frames(matty)
+
+    update_camera()
+end
+
+function _draw_intro()
+
 end
 
 function make_entity(_type, _sprite, _x, _y, _w, _h, _speed, _jump_speed)
@@ -219,7 +244,7 @@ function update_hearts()
 end
 
 
-function _update()
+function _update_main()
     xmove = 0
 
     if you_win == false then
@@ -275,14 +300,14 @@ end
 
 function update_browser()
     if browser.y <= 64 then
-        browser_yMove = 2
+        browser_ymove = 2
     end
 
     if browser.y >= 96 then
-        browser_yMove = -2
+        browser_ymove = -2
     end
 
-    browser.y = browser.y + browser_yMove
+    browser.y = browser.y + browser_ymove
 end
 
 function reset_player_jump()
@@ -494,15 +519,15 @@ function draw_background()
     map(0, 16, 0, 0, 128, 64, 0)
     map(0, 16, 0, 48*8, 100, 64, 0)
 
-    -- This is all the <- CASTLE SIGN
+    -- this is all the <- castle sign
     rectfill(898, 468, 936, 476, 4)
     rect(898, 468, 936, 476, 0)
     rectfill(916, 476, 920, 487, 4)
     rect(916, 476, 920, 487, 0)
-    print("<-CASTLE", 902, 470, 00)
+    print("<-castle", 902, 470, 00)
 end
 
-function _draw()
+function _draw_main()
     cls(0)
     draw_background()
 
@@ -512,7 +537,7 @@ function _draw()
     draw_matty_and_charles()
     draw_hearts()
 
-    if you_win == false then
+    if you_win == false and update_state != _update_intro then
         draw_cage()
         draw_enemies()
         draw_stars()
@@ -541,8 +566,10 @@ function draw_cage()
 end
 
 function draw_matty_and_charles()
-    spr(matty.sprite, matty.x, matty.y)
-    spr(charlie.sprite, charlie.x, charlie.y)
+    local should_flip = update_state == _update_intro
+
+    spr(matty.sprite, matty.x, matty.y, 1, 1, should_flip)
+    spr(charlie.sprite, charlie.x, charlie.y, 1, 1, should_flip)
 end
 
 function draw_browser()
@@ -568,7 +595,7 @@ function draw_hearts()
 end
 
 function draw_player()
-    local flip_x = xmove < 0
+    local flip_x = xmove < 0 or update_state == _update_intro
 
     spr(player.sprite, player.x, player.y, 1, 1, flip_x)
 end
@@ -717,7 +744,7 @@ d0d0d0d0d0d0d0000000000000000052000000d0d000000062000000d0d000520000000000000062
 d0d0d0d0d0d0d0d000000000000000620000d0d00000000052000000d0d00062000000000000005200000000000000620062000000d0d0005200d0d000000062
 00000000000000520000000000000062006200000000000052000000000000620000000000000000000000001626000000000000001626000000000000000000
 d0d0d0d0d0d0d0d0d00000000000005200d0d000000000005200000000d0d0520000000000000052000000000000005200520000d0d0d0005200d0d0d0000052
-00000000000000520000000000000052005200000000000052000000000000520000000000000000000000001727000000000000001727000000000000433353
+00000000000000520000000000000052005200000000000052000000000000520000000000000000000000001727000000000000001727000000433353000000
 d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0
 d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0a1a1a1a1a1a1a1a1a1a1a1a1a1a1b1b1b1b1b1b1b1b1
 d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0
