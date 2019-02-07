@@ -28,6 +28,13 @@ blue_check_sprite = 64
 red_check_sprite = 65
 reposition_y = 0
 browser_ymove = 0
+intro_phase = 0
+intro_timer = 0
+intro_text = {
+    first_line = "Queen Athena, Matty, n Charles",
+    second_line = "were enjoying a lovely picnic.",
+    third_line = "    when all of a sudden...    "
+}
 
 ground = {
     x = 0,
@@ -75,7 +82,7 @@ function _init()
     door3.cam_y_to = bottom_screen_cam_y
 
     update_state = _update_intro
-    draw_state = _draw_main
+    draw_state = _draw_intro
 end
 
 function _draw()
@@ -87,6 +94,14 @@ function _update()
 end
 
 function _update_intro()
+    intro_timer = intro_timer + 1
+
+    if intro_timer >= 60*8 then
+        intro_phase = intro_phase + 1
+    end
+
+    update_current_intro_phase()
+
     update_frames(player)
     update_frames(charlie)
     update_frames(matty)
@@ -94,8 +109,30 @@ function _update_intro()
     update_camera()
 end
 
-function _draw_intro()
+function update_current_intro_phase()
+    if intro_phase == 0 then
+        update_intro_phase_0()
+    end
+end
 
+function update_intro_phase_0()
+
+end
+
+function _draw_intro()
+    _draw_main()
+
+    if intro_phase == 0 then
+        local box_x = 896
+        local box_y = 408
+
+        rectfill(box_x, box_y, box_x+127, box_y+44, 1)
+        rect(box_x, box_y, box_x+127, box_y+44, 13)
+
+        print(intro_text.first_line, box_x+4, box_y+8, 7)
+        print(intro_text.second_line, box_x+4, box_y+20, 7)
+        print(intro_text.third_line, box_x+4, box_y+32, 7)
+    end
 end
 
 function make_entity(_type, _sprite, _x, _y, _w, _h, _speed, _jump_speed)
