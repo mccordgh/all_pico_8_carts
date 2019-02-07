@@ -3,8 +3,8 @@ version 16
 __lua__
 
 gravity = 0.2
-xMove = 0
-yMove = 0
+xmove = 0
+ymove = 0
 cam_x = 0
 enemy_x = 0
 star_x = 150
@@ -16,11 +16,11 @@ enemies = {}
 stars = {}
 star_timer = 0
 enemy_timer = 0
-ENEMY_SPAWN_TIME = 120
-STAR_SPAWN_TIME = 90
-MAX_X = 992
-MAX_SPRITES = 2
-FRAME_CHANGE_NUMBER = 10
+enemy_spawn_time = 120
+star_spawn_time = 90
+max_x = 992
+max_sprites = 2
+frame_change_number = 10
 blue_check_sprite = 64
 red_check_sprite = 65
 reposition_y = 0
@@ -33,6 +33,7 @@ ground = {
 }
 
 function _init()
+    music(0)
     local player_speed = 1
     -- local player_speed = 10
 
@@ -73,8 +74,8 @@ end
 function make_enemy()
     local enemy_x = player.x + 128
 
-    if enemy_x > MAX_X then
-        enemy_x = MAX_X
+    if enemy_x > max_x then
+        enemy_x = max_x
     end
 
     local enemy = make_entity("enemy", 7, enemy_x, ground.y - 8, 8, 8, 0.75, 1)
@@ -85,8 +86,8 @@ end
 function make_star()
     local star_x = player.x + 128
 
-    if star_x > MAX_X then
-        star_x = MAX_X
+    if star_x > max_x then
+        star_x = max_x
     end
 
     local star = make_entity("enemy", 9, star_x, ground.y-8-16, 8, 8, 1.75, 1)
@@ -95,7 +96,7 @@ function make_star()
 end
 
 function update_enemies()
-    if enemy_timer > ENEMY_SPAWN_TIME then
+    if enemy_timer > enemy_spawn_time then
         add(enemies, make_enemy())
         enemy_timer = 0
     end
@@ -110,18 +111,18 @@ end
 function update_frames(entity)
     entity.frame = entity.frame + 1
 
-    if entity.frame > FRAME_CHANGE_NUMBER then
+    if entity.frame > frame_change_number then
         entity.sprite = entity.sprite + 1
         entity.frame = 0
 
-        if entity.sprite >= (entity.start_sprite + MAX_SPRITES) then
+        if entity.sprite >= (entity.start_sprite + max_sprites) then
             entity.sprite = entity.start_sprite
         end
     end
 end
 
 function update_stars()
-    if star_timer > STAR_SPAWN_TIME then
+    if star_timer > star_spawn_time then
         add(stars, make_star())
         star_timer = 0
     end
@@ -144,7 +145,7 @@ end
 
 
 function _update()
-    xMove = 0
+    xmove = 0
 
     if you_win == false then
         star_timer = star_timer + 1
@@ -176,17 +177,17 @@ function _update()
     local block_below = is_ground_below()
 
     if collide_x == false then
-        player.x = player.x + xMove
+        player.x = player.x + xmove
     end
 
     if collide_y == false then
-        if (block_below == true and yMove < 0) or block_below == false then
-            yMove = yMove + gravity
+        if (block_below == true and ymove < 0) or block_below == false then
+            ymove = ymove + gravity
 
-            player.y = player.y + yMove
+            player.y = player.y + ymove
         end
 
-        if block_below == true and yMove > 0 then
+        if block_below == true and ymove > 0 then
             reset_player_jump()
         end
     else
@@ -197,7 +198,7 @@ function _update()
 end
 
 function reset_player_jump()
-    yMove = 0
+    ymove = 0
     player.jumping = false
 
     reposition_y = player.y / 8
@@ -226,15 +227,15 @@ end
 
 function get_input()
     if btn(0) then
-        xMove = -player.speed
+        xmove = -player.speed
     end
 
     if btn(1) then
-        xMove = player.speed
+        xmove = player.speed
     end
 
     if btn(2) and (player.jumping == false) then
-        yMove = -player.jump_speed
+        ymove = -player.jump_speed
 
         player.jumping = true
     end
@@ -243,7 +244,7 @@ end
 function did_collide_x()
     local collide_x = false
 
-    if player.x + xMove < 8 or player.x + xMove > MAX_X then
+    if player.x + xmove < 8 or player.x + xmove > max_x then
         collide_x = true
     end
 
@@ -265,7 +266,7 @@ function did_collide_x()
         you_win_dude()
     end
 
-    if xMove > 0 and will_hit_block_x() then
+    if xmove > 0 and will_hit_block_x() then
         collide_x = true
     end
 
@@ -292,10 +293,10 @@ function will_hit_block_x()
     local cell_size = 8
     local next_x = nil
 
-    if xMove > 0 then
-        next_x = player.x + player.w + xMove
+    if xmove > 0 then
+        next_x = player.x + player.w + xmove
     else
-        next_x = player.x + xMove
+        next_x = player.x + xmove
     end
 
     local block_x = mget(flr(next_x / cell_size), flr(player.y / cell_size))
@@ -319,10 +320,10 @@ function will_hit_block_y()
     local cell_size = 8
     local next_y = nil
 
-    if yMove > 0 then
-        next_y = player.y + player.h + yMove
+    if ymove > 0 then
+        next_y = player.y + player.h + ymove
     else
-        next_y = player.y + yMove
+        next_y = player.y + ymove
     end
 
     local block_y = mget(flr(player.x / cell_size), flr(next_y / cell_size))
@@ -336,12 +337,12 @@ end
 function did_collide_y()
     local collide_y = false
 
-   if yMove != 0 and will_hit_block_y() then
+   if ymove != 0 and will_hit_block_y() then
         collide_y = true
     end
 
     -- if player.grounded == false then
-    --     if (player.y + player.h + yMove) >= ground.y then
+    --     if (player.y + player.h + ymove) >= ground.y then
     --         collide_y = true
     --     end
     -- end
@@ -353,18 +354,18 @@ function debug_info()
     debug_y_pos = 18
     debug_x_pos = 10
 
-    debug_print("xMove: " ..xMove)
-    -- debug_print("yMove: " .. yMove)
+    -- debug_print("xmove: " ..xmove)
+    -- debug_print("ymove: " .. ymove)
     -- debug_print("block_below: " .. (block_below and "true" or "false"))
     -- debug_print("jumping: " .. (player.jumping and "true" or "false"))
-    -- debug_print("Y: " .. player.y)
+    -- debug_print("y: " .. player.y)
     -- debug_print("ceil: " ..ceil(player.y / 8) * 8)
     -- debug_print("repos_y: " ..reposition_y)
     -- print("cam_x, 0: " .. cam_x .. ", 0", cam_x + 10, 10, 11)
-    -- print("Y: " .. player.y, cam_x + 10, 30, 7)
-    -- print("Y / 8: " ..(player.y / 8), cam_x + 10, 36, 7)
+    -- print("y: " .. player.y, cam_x + 10, 30, 7)
+    -- print("y / 8: " ..(player.y / 8), cam_x + 10, 36, 7)
     -- print("flr: " ..flr(player.y / 8) * 8, cam_x + 10, 36, 7)
-    -- print("yMove: " .. yMove, cam_x + 10, 36, 7)
+    -- print("ymove: " .. ymove, cam_x + 10, 36, 7)
     -- print("jumping: " .. (player.jumping and "true" or "false"), cam_x + 10, 42, 7)
     -- print("cam_x: " .. cam_x .. " / " .. (cam_x / 16), cam_x + 10, 40)
 end
@@ -447,7 +448,7 @@ function draw_hearts()
 end
 
 function draw_player()
-    local flip_x = xMove < 0
+    local flip_x = xmove < 0
 
     spr(player.sprite, player.x, player.y, 1, 1, flip_x)
 end
@@ -470,8 +471,8 @@ function draw_winning_things()
 
     rectfill(cam_x, yy - 1, cam_x + 128, yy + 16 + 1, 8)
     rectfill(cam_x + 1, yy, cam_x + 126, yy + 16, 14)
-    print("YOU FOUND MATTY AND CHARLIE!", cam_x + 4, 40, 0)
-    print("WE LOVE YOU, OUR QUEEN!!! <3", cam_x + 4, 48, 0)
+    print("you found matty and charlie!", cam_x + 4, 40, 0)
+    print("we love you, our queen!!! <3", cam_x + 4, 48, 0)
 end
 
 __gfx__
@@ -564,3 +565,15 @@ __map__
 00000000002c0000002c000000002a002a0000000000002c002c0000000000002a000000002c0000002c000000002a002a0000000000002c002c0000000000002a000000002c0000002c000000002a002a0000000000002c002c000000000000002a000000002c0000002c000000002a002a0000000000000000000000000000
 00000000002a0000002a000000002b002b0000000000002a002a0000000000002b000000002a0000002a000000002b002b0000000000002a002a0000000000002b000000002a0000002a000000002b002b0000000000002a002a000000000000002b000000002a0000002a000000002b002b0000000000000000000000000000
 0000000000290000002900000000290029000000000000290029000000000000290000000029000000290000000029002900000000000029002900000000000029000000002900000029000000002900290000000000002900290000000000000029000000002900000029000000002900290000000000000000000000000000
+__sfx__
+000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+001200001205000000120500000012050000001205000000130500000013050000001305000000130500000015050000001505000000150500000015050000001705000000170500000017050000001705000000
+001200001e7321e1321e7321e132000000000000000000001f7321f1321f7321f13200000000000000000000211322113221132211321f1321f1321f1321f1322373223132237322313200000000000000000000
+001200000000000000000000663500000000000663506200000000000006600000000000006635000000663500000000000000006635000000000006635062000000000000066000000000000066350663506635
+__music__
+00 01024344
+01 01024344
+00 01024344
+00 01020344
+02 01020344
+
