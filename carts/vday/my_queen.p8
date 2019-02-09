@@ -136,16 +136,16 @@ function _init_title()
     matty.x = 20
     matty.y = player.y
 
-    charlie.x = 102
+    charlie.x = 101
     charlie.y = player.y
 
-    browser.x = 82
+    browser.x = 80
     browser.y = 80-4
 
-    dragon_head.x = 64-10
+    dragon_head.x = 64-17
     dragon_head.y = 8
 
-    intro_enemy.x = 32+8
+    intro_enemy.x = 32+9
     intro_enemy.y = browser.y
 
     update_state = _update_title
@@ -194,10 +194,19 @@ function _draw_title()
         end
     end
 
+    for x_pos = 16, 104, 8 do
+        spr(67, x_pos, player.y+8)
+    end
+
+    for x_pos = 16+16, 104-16, 8 do
+        spr(67, x_pos, browser.y+8)
+    end
+
     draw_player()
     draw_matty_and_charles()
     draw_browser()
     draw_dragon_head()
+    sspr(13*8, 1*8, 16, 16, dragon_head.x+18, dragon_head.y, 16, 16, true)
     draw_intro_enemy()
     draw_hearts()
 
