@@ -741,7 +741,7 @@ function debug_info()
     -- debug_print("ymove: " .. ymove)
     -- debug_print("block_below: " .. (block_below and "true" or "false"))
     -- debug_print("jumping: " .. (player.jumping and "true" or "false"))
-    debug_print("x, y: " .. player.x .."," ..player.y)
+    -- debug_print("x, y: " .. player.x .."," ..player.y)
     -- debug_print("ceil: " ..ceil(player.y / 8) * 8)
 end
 
