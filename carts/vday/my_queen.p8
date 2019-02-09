@@ -26,6 +26,8 @@ enemy_patrol_radius = 8*7
 bottom_floor_y = 480
 top_floor_y = 96
 
+has_won = false
+
 gravity = 0.2
 xmove = 0
 ymove = 0
@@ -55,6 +57,7 @@ browser_ymove = 0
 intro_player_disabled = false
 intro_draw_cage = false
 intro_phase = 0
+intro_show_text = false
 intro_timer = 0
 intro_text = {
     first_line = "qUEEN aTHENA, mATTY, n cHARLES",
@@ -70,14 +73,15 @@ ground = {
 }
 
 function _init()
-    -- local player_speed = 0.7
-    local player_speed = 1
-    -- local player_start_x = 125*8
-    local player_start_x = 900
-    -- local player_start_y = bottom_floor_y
+    player_speed = 0.7
+    player_start_x = 125*8
+    player_start_y = bottom_floor_y
 
-    local player_start_y = top_floor_y
-    cam_y = 0
+    -- DEBUGGING TYPE SETTINGS BELOW
+    -- local player_speed = 1
+    -- local player_start_x = 900
+    -- local player_start_y = top_floor_y
+    -- cam_y = 0
 
 
     player = make_entity("player", 1, player_start_x, player_start_y, 8, 8, player_speed, 2.8) -- bottom right (start)
@@ -117,13 +121,113 @@ function _init()
     door3.teleport_to_y = door_y + 8
     door3.cam_y_to = bottom_screen_cam_y
 
-    _init_main()
+    -- _init_main()
     -- _init_intro()
+    _init_title()
 
 end
 
-function _init_intro()
+function _init_title()
     music(music_intro)
+
+    player.x = 60
+    player.y = 48+4
+
+    matty.x = 20
+    matty.y = player.y
+
+    charlie.x = 102
+    charlie.y = player.y
+
+    browser.x = 82
+    browser.y = 80-4
+
+    dragon_head.x = 64-10
+    dragon_head.y = 8
+
+    intro_enemy.x = 32+8
+    intro_enemy.y = browser.y
+
+    update_state = _update_title
+    draw_state = _draw_title
+end
+
+function _update_title()
+    get_title_input()
+
+    update_frames(player)
+    update_frames(charlie)
+    update_frames(matty)
+    update_frames(browser)
+    update_frames(dragon_head)
+    update_frames(intro_enemy)
+
+    make_heart(32, 136)
+    make_heart(96, 136)
+
+    update_hearts()
+end
+
+function get_title_input()
+    if btn(2) then
+        _init_intro()
+    end
+end
+
+function _draw_title()
+    cls(0)
+    rectfill(0, 0, 127, 127, 1)
+    rect(0, 0, 127, 127, 13)
+
+    local logo_start_x = 20
+    local logo_start_y = 32
+    local spacing = 0
+    local spacer = 12
+
+    for sprite_num = 68, 74, 1 do
+        spr(sprite_num, logo_start_x + spacing, logo_start_y)
+        spacing = spacing + spacer
+
+        if sprite_num == 72 then
+            spr(sprite_num, logo_start_x + spacing, logo_start_y)
+            spacing = spacing + spacer
+        end
+    end
+
+    draw_player()
+    draw_matty_and_charles()
+    draw_browser()
+    draw_dragon_head()
+    draw_intro_enemy()
+    draw_hearts()
+
+    print("Press Up Arrow to Start!", 16, 96, 14)
+    print("Press Up Arrow to Start!", 16, 96+8, 12)
+    print("Press Up Arrow to Start!", 16, 96+16, 7)
+end
+
+function _init_intro()
+    -- music(music_intro)
+
+    hearts = {}
+
+    matty.x = 121*8
+    matty.y = 60*8
+
+    player.x = player_start_x
+    player.y = player_start_y
+
+    charlie.x = 120*8
+    charlie.y = 60*8
+
+    browser.x = 117*8
+    browser.y = 96
+
+    dragon_head.x = 115*8
+    dragon_head.y = 63
+
+    intro_enemy.x = 129*8
+    intro_enemy.y = player.y
 
     update_state = _update_intro
     draw_state = _draw_intro
@@ -173,8 +277,8 @@ end
 
 function current_intro_max()
     if intro_phase == 0 then
-        -- return 60*8
-        return 1
+        return 60*12
+        -- return 1
     end
 
     if intro_phase == 1 then
@@ -192,6 +296,10 @@ end
 
 function _update_intro()
     intro_timer = intro_timer + 1
+
+    if intro_timer > 60*4 and intro_phase == 0 then
+        intro_show_text = true
+    end
 
     local timer_max = current_intro_max()
 
@@ -286,7 +394,7 @@ end
 function _draw_intro()
     _draw_main()
 
-    if intro_phase == 0 then
+    if intro_phase == 0 and intro_show_text == true then
         local box_x = 896
         local box_y = 408
 
@@ -334,9 +442,10 @@ function make_entity(_type, _sprite, _x, _y, _w, _h, _speed, _jump_speed)
 end
 
 function make_heart(_x, _y)
-    local heart = make_entity("heart", 11, _x, _y, 8, 8, 1, 1)
 
     if rnd(1) >= 0.95 then
+        local heart = make_entity("heart", 11, _x, _y, 8, 8, 1, 1)
+
         add(hearts, heart)
     end
 end
@@ -346,7 +455,7 @@ function player_is_on_bottom_screen()
 end
 
 function make_enemy(_type, _sprite, _x, _y)
-    local enemy = make_entity(_type, _sprite, _x, _y, 8, 8, 1.25, 1)
+    local enemy = make_entity(_type, _sprite, _x, _y, 8, 8, 0.9, 1)
 
     enemy.start_x = enemy.x
     enemy.start_y = enemy.y
@@ -463,7 +572,7 @@ function _update_main()
         enemy_timer = enemy_timer + 1
     end
 
-    if enemy_collide == true then
+    if enemy_collide == true and you_win == false then
         player_disable_counter = player_disable_counter + 1
         player.sprite = 17
     else
@@ -477,13 +586,14 @@ function _update_main()
     end
 
     update_hearts()
-    update_stars()
-    update_enemies()
-    update_browser()
-    update_dragon_head()
-    update_frames(charlie)
-    update_frames(matty)
-    update_frames(browser)
+
+    if you_win == false then
+        update_stars()
+        update_enemies()
+        update_browser()
+        update_dragon_head()
+        update_frames(browser)
+    end
 
     local collide_x = did_collide_x()
     local collide_y = did_collide_y()
@@ -506,6 +616,9 @@ function _update_main()
     else
         reset_player_jump()
     end
+
+    update_frames(charlie)
+    update_frames(matty)
 
     update_camera()
 end
@@ -661,11 +774,17 @@ function did_collide_x()
 end
 
 function you_win_dude()
-    you_win = true
-    enemies = {}
-    stars = {}
-    star_timer = 0
-    enemy_timer = 0
+    if not has_won then
+        music(music_intro)
+        you_win = true
+        enemies = {}
+        stars = {}
+        star_timer = 0
+        enemy_timer = 0
+        browser.y = 0
+        dragon_head.y = 0
+        has_won = true
+    end
 end
 
 function did_collide_with(enemy)
@@ -834,7 +953,6 @@ end
 
 function draw_dragon_head()
     sspr(13*8, 1*8, 16, 16, dragon_head.x, dragon_head.y)
-    -- spr(dragon_head.sprite, dragon_head.x, dragon_head.y)
 end
 
 function draw_stars()
@@ -918,14 +1036,14 @@ __gfx__
 000000009496a9439fffa99744444444088009900dd0011000000000000000000000000000000000000000000000000000000000000000000000000000000000
 00000000094669909496a9434f9f9f9488789979dd7d117100088000000000000000000000000000000000000000000000000000000000000000000000000000
 0000000009400a900946699044444444088009900dd0011000088000000000000000000000000000000000000000000000000000000000000000000000000000
-1122112200033333b33b000000066600000000000000000000000000000000000000000000000000000000000000000000000000555555555555666666666666
-1122112200333333333bb00000677760000000000000000000000000000000000000000000000000000000000000000000000000052222222255662222222260
-22112211033333333333b30006777766000000000000000000000000000000000000000000000000000000000000000000000000005222222255662222222600
-221122113333333833333b3007777776000000000000000000000000000000000000000000000000000000000000000000000000005555555555666666666600
-112211223333333333333b3007777755000000000000000000000000000000000000000000000000000000000000000000000000005522222222222222226600
-11221122333333333333333b05757550000000000000000000000000000000000000000000000000000000000000000000000000005522222222222222226600
-22112211333333333333333b00505000000000000000000000000000000000000000000000000000000000000000000000000000005522222e22222222226600
-22112211333383333333333b0000000000000000000000000000000000000000000000000000000000000000000000000000000000552222ee222222e2226600
+1122112200033333b33b0000000666000e00000e0e00000e000eee000e00000e0eeeeee00e00000e00ee00000000000000000000555555555555666666666666
+1122112200333333333bb000006777600ee000ee0de000ed00eddde00e00000e0eddddd00ee0000e00ee00000000000000000000052222222255662222222260
+22112211033333333333b300067777660ede0ede00de0ed00ed000de0e00000e0e0000000ede000e00ee00000000000000000000005222222255662222222600
+221122113333333833333b30077777760e0ded0e000ded000e00000e0e00000e0eeee0000e0de00e00ee00000000000000000000005555555555666666666600
+112211223333333333333b30077777550e00d00e0000e0000e000e0e0e00000e0eddd0000e00de0e00dd00000000000000000000005522222222222222226600
+11221122333333333333333b057575500e00000e0000e0000de00ded0de000ed0e0000000e000dee000000000000000000000000005522222222222222226600
+22112211333333333333333b005050000e00000e0000e00000deeede00deeed00eeeeee00e0000de00ee00000000000000000000005522222e22222222226600
+22112211333383333333333b000000000d00000d0000d000000ddd0d000ddd000dddddd00d00000d00dd0000000000000000000000552222ee222222e2226600
 00000000333333333333333b000000000000000000000000000000000000000000000000000000000000000000000000000000000055222ee222222ee2226600
 00000000333333333833333b00000000000000000000000000000000000000000000000000000000000000000000000000000000005522ee222222ee22226600
 0000000055333333333333b3000000000000000000000000000000000000000000000000000000000000000000000000000000000055222222222ee222226600
@@ -1030,7 +1148,7 @@ __map__
 0d00000000000028000000000000002600260000000000002800000000000026000000000000002800000000000000260026000000000d0028000d0000000026000000000000002800000000000000260026000000000000280000000000002600000000000000002800000000002600260000000000000000000000000d0d0d
 0d00000000000026000000000d000025002500000000000026000000000000250000000d00000026000000000000002500250000000d00002600000d00000025000000000000002600000000000000250025000000000000260000000000002500000000000000002600000000002500250000000000000000000000000d0d0d
 0d000000000000250000000d0d0000260026000000000000250000000000002600000d0d0d0000250000000000000026002600000d000000250000000d000026000000000000002500000000000000260026000000000d0025000d000000002600000000000000002500000000002600260000000000000000000000000d0d0d
-0d0d0000000000250000000d0d0d00250025000000000000250000000000002500000d0d0d00002500000000000000250025000d0000000025000000000d00250000000000000025000000000000002500250000000d0d0025000d0d0000002500000000000000002500000000002500250000000000000000000000000d0d0d
+0d0d0000000000250000000d0d0d00250025000000000000250000000000002500000d0d0d0000250000000000000025002500000d000000250000000d0000250000000000000025000000000000002500250000000d0d0025000d0d0000002500000000000000002500000000002500250000000000000000000000000d0d0d
 0d0d0d000000000d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d
 0d0d0d0000000d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d
 0d0d0d00000d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d
