@@ -2,6 +2,18 @@ pico-8 cartridge // http://www.pico-8.com
 version 16
 __lua__
 
+music_intro = 20
+music_main_bgm = 0
+music_danger = 30
+
+sfx_bonk = 10
+sfx_cage = 11
+sfx_alert = 12
+
+has_played_bonk = false
+has_played_alert = false
+has_played_cage = false
+
 gravity = 0.2
 xmove = 0
 ymove = 0
@@ -33,9 +45,9 @@ intro_draw_cage = false
 intro_phase = 0
 intro_timer = 0
 intro_text = {
-    first_line = "Queen Athena, Matty, n Charles",
-    second_line = "were enjoying a lovely picnic.",
-    third_line = "    when all of a sudden...    "
+    first_line = "qUEEN aTHENA, mATTY, n cHARLES",
+    second_line = "WHERE ENJOYING A LOVELY PICNIC",
+    third_line = "    WHEN ALL OF A SUDDEN...    "
 }
 
 ground = {
@@ -46,8 +58,7 @@ ground = {
 }
 
 function _init()
-    -- music(0)
-    local player_speed = 1
+    local player_speed = 0.7
     -- local player_speed = 10
 
 
@@ -55,6 +66,7 @@ function _init()
     -- player = make_entity("player", 1, 10*8, 60*8, 8, 8, player_speed, 2.8) -- bottom left
     -- player = make_entity("player", 1, 108*8, ground.y-32, 8, 8, player_speed, 2.8) -- top right
     -- player = make_entity("player", 1, 64, ground.y-32, 8, 8, player_speed, 2.8) -- top left
+    player.last_dir = 0
     matty = make_entity("matty", 5, 121*8, 60*8, 8, 8, 1, 1)
     charlie = make_entity("charlie", 3, 120*8, 60*8, 8, 8, 1, 1)
     browser = make_entity("browser", 49, 920, 96, 8, 8, 1, 4)
@@ -86,8 +98,31 @@ function _init()
     door3.teleport_to_y = door_y + 8
     door3.cam_y_to = bottom_screen_cam_y
 
+    -- _init_main()
+    _init_intro()
+
+end
+
+function _init_intro()
+    music(music_intro)
+
     update_state = _update_intro
     draw_state = _draw_intro
+end
+
+function _init_main()
+    music(music_main_bgm)
+
+    intro_enemy = nil
+    intro_browser = nil
+
+    matty.x = 961
+    matty.y = ground.y-8
+    charlie.x = 952
+    charlie.y = matty.y
+
+    update_state = _update_main
+    draw_state = _draw_main
 end
 
 function _draw()
@@ -100,8 +135,8 @@ end
 
 function current_intro_max()
     if intro_phase == 0 then
-        -- return 60*8
-        return 1
+        return 60*8
+        -- return 1
     end
 
     if intro_phase == 1 then
@@ -109,11 +144,11 @@ function current_intro_max()
     end
 
     if intro_phase == 2 then
-        return 30*8
+        return 24*8
     end
 
     if intro_phase == 3 then
-        return 6*8
+        return 8*8
     end
 end
 
@@ -125,6 +160,10 @@ function _update_intro()
     if intro_timer >= timer_max then
         intro_phase = intro_phase + 1
         intro_timer = 0
+
+        if intro_phase == 4 then
+            _init_main()
+        end
     end
 
     update_current_intro_phase()
@@ -135,8 +174,14 @@ function _update_intro()
 
     update_frames(charlie)
     update_frames(matty)
-    update_frames(intro_enemy)
-    update_frames(intro_browser)
+
+    if intro_enemy != nil then
+        update_frames(intro_enemy)
+    end
+
+    if intro_browser != nil then
+        update_frames(intro_browser)
+    end
 
     update_camera()
 end
@@ -146,19 +191,32 @@ function update_current_intro_phase()
         if intro_browser.x < (charlie.x - 16) then
             intro_browser.x = intro_browser.x + intro_browser.speed
         else
+            if not has_played_cage then
+                sfx(sfx_cage)
+
+                has_played_cage = true
+            end
+
             intro_draw_cage = true
         end
 
         if intro_enemy.x > player.x + 8 then
             intro_enemy.x = intro_enemy.x - intro_enemy.speed
         else
+            music(music_danger)
+            if not has_played_bonk then
+                sfx(sfx_bonk)
+
+                has_played_bonk = true
+            end
+
             intro_player_disabled = true
             player.sprite = 17
         end
     end
 
     if intro_phase == 2 then
-        if intro_browser.x > 108*8 then
+        if intro_browser.x > 106*8 then
             intro_browser.x = intro_browser.x - intro_browser.speed
             charlie.x = charlie.x - intro_browser.speed
             matty.x = matty.x - intro_browser.speed
@@ -170,7 +228,14 @@ function update_current_intro_phase()
     end
 
     if intro_phase == 3 then
-        intro_player_disabled = false
+        if not has_played_alert then
+            music(-1)
+            sfx(sfx_alert)
+
+            has_played_alert = true
+        end
+
+        player.sprite = 1
     end
 end
 
@@ -455,10 +520,12 @@ end
 function get_input()
     if btn(0) then
         xmove = -player.speed
+        player.last_dir = 0
     end
 
     if btn(1) then
         xmove = player.speed
+        player.last_dir = 1
     end
 
     if btn(2) and (player.jumping == false) then
@@ -469,6 +536,10 @@ function get_input()
 end
 
 function did_collide_x()
+    if player.sprite == 17 then
+        return
+    end
+
     local collide_x = false
 
     if player.x + xmove < 0 or player.x + xmove > max_x then
@@ -521,6 +592,10 @@ function did_collide_x()
 
     if xmove != 0 and will_hit_block_x() then
         collide_x = true
+    end
+
+    if enemy_collide == true then
+        sfx(sfx_bonk)
     end
 
     return collide_x
@@ -712,7 +787,7 @@ function draw_hearts()
 end
 
 function draw_player()
-    local flip_x = xmove < 0 or update_state == _update_intro
+    local flip_x = player.last_dir == 0
 
     spr(player.sprite, player.x, player.y, 1, 1, flip_x)
 end
@@ -740,14 +815,14 @@ function draw_winning_things()
 end
 
 __gfx__
-00000000000398000000000005555500000000000004400000440000499999940000000000090000a0a0a0900800080000080000177717770000000000000000
-000000000aafaaa00009090076557650055555000004440000444000bbbb99404999999400a990000aaa99008880888000080000156715670000000000000000
-00700700aaff4f400003980065456550765576500004444000444440b8bbb999bbbb99400a0a0900aaa099908888878000070000155515550000000000000000
-000770000a3ffff00aafaaa06656650065456550000cfcf0000cfcf03bbbb3bbb8bbb999aaa099900a0009008888878000080000111111110000000000000000
-00077000aaee8899aaff4f400777755566566500000ffff0000ffff0bbbb43bb3bbbb3bb0a090900aaa099900888880000080000771777170000000000000000
-00700700ae877d600a3ffff0677775050777755500422f200002222030433bbbbbbb43bb00a990000aa999000088800000080000671567150000000000000000
-0000000008888880aaee889906000500677775050002222000422f2033440bb430433bbb00090000a09090900088800000080000551555150000000000000000
-0000000000090900ae877d600600050006000500000400f0000400f0033000bb33440bb400000000000000000008000000080000111111110000000000000000
+00000000000909000000000005555500000000000004400000440000499999940000000000090000a0a0a0900800080000080000177717770000000000000000
+00000000000398000009090076557650055555000004440000444000bbbb99404999999400a990000aaa99008880888000080000156715670000000000000000
+007007000aafaaa00003980065456550765576500004444000444440b8bbb999bbbb99400a0a0900aaa099908888878000070000155515550000000000000000
+00077000aaff4f400aafaaa06656650065456550000cfcf0000cfcf03bbbb3bbb8bbb999aaa099900a0009008888878000080000111111110000000000000000
+000770000a3ffff0aaff4f400777755566566500000ffff0000ffff0bbbb43bb3bbbb3bb0a090900aaa099900888880000080000771777170000000000000000
+00700700aaee88990a3ffff0677775050777755500422f200002222030433bbbbbbb43bb00a990000aa999000088800000080000671567150000000000000000
+00000000ae877d60aaee889906000500677775050002222000422f2033440bb430433bbb00090000a09090900088800000080000551555150000000000000000
+0000000008888880ae877d600600050006000500000400f0000400f0033000bb33440bb400000000000000000008000000080000111111110000000000000000
 0000000000000900555566666666666666667777000505000000dd0000000000000000003333333344444444eeeeeeee00000000000000000000077700000000
 0000000000a4896805006006006006006006007000055500000ddd0000ddddd00000000033343333444444444444444400000000000000000337779000000000
 0000000098a888d80500600600600600600600700dd6ddd000dddd000d57dd570000000033333333343343333433433300000000000000003337799000000000
@@ -906,10 +981,34 @@ __sfx__
 001200001205000000120500000012050000001205000000130500000013050000001305000000130500000015050000001505000000150500000015050000001705000000170500000017050000001705000000
 001200001e7321e1321e7321e132000000000000000000001f7321f1321f7321f13200000000000000000000211322113221132211321f1321f1321f1321f1322373223132237322313200000000000000000000
 001200000000000000000000663500000000000663506200000000000006600000000000006635000000663500000000000000006635000000000006635062000000000000066000000000000066350663506635
+0018000018533185321853218532185321853218532185001f5321f5321f5321f5321f5321f5321f532000001d5321d5321d5321d5321d5321d5321d532000001c5321c5321c5321c5321c5321c5321c5321c532
+001800000000000000066050662506625000000662506200000000000006600066250660000000066250660000000000000660506625066250000006625062000000000000066000662506600000000662506600
+001800001c5311c5321c5321c5321c5321c5321c53200000245322453224532245322453224532245320000021532215322153221532215322153221532245112451124511245112451123521235212352123521
+001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+000800000455004610015500200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 __music__
 00 01024344
 01 01024344
 00 01024344
 00 01020344
 02 01020344
+00 41424344
+00 41424344
+00 41424344
+00 41424344
+00 41424344
+00 41424344
+00 41424344
+00 41424344
+00 41424344
+00 41424344
+00 41424344
+00 41424344
+00 41424344
+00 41424344
+00 41424344
+01 04064544
+03 04060544
 

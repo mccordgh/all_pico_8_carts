@@ -2,6 +2,30 @@ pico-8 cartridge // http://www.pico-8.com
 version 16
 __lua__
 
+music_intro = 20
+music_main_bgm = 0
+music_danger = 30
+
+sfx_bonk = 10
+sfx_cage = 11
+sfx_alert = 12
+
+has_played_bonk = false
+has_played_alert = false
+has_played_cage = false
+
+-- Patrol radius 100 both ways
+
+-- Bottom floor y: 480
+-- 	x: 740, 568, 312, 96
+
+-- Top floor y: 96
+-- 	x 192, 352, 568, 832
+
+enemy_patrol_radius = 8*7
+bottom_floor_y = 480
+top_floor_y = 96
+
 gravity = 0.2
 xmove = 0
 ymove = 0
@@ -20,7 +44,7 @@ stars = {}
 star_timer = 0
 enemy_timer = 0
 enemy_spawn_time = 140
-star_spawn_time = 110
+star_spawn_time = 60
 max_x = 1016
 max_sprites = 2
 frame_change_number = 10
@@ -33,9 +57,9 @@ intro_draw_cage = false
 intro_phase = 0
 intro_timer = 0
 intro_text = {
-    first_line = "Queen Athena, Matty, n Charles",
-    second_line = "were enjoying a lovely picnic.",
-    third_line = "    when all of a sudden...    "
+    first_line = "qUEEN aTHENA, mATTY, n cHARLES",
+    second_line = "WHERE ENJOYING A LOVELY PICNIC",
+    third_line = "    WHEN ALL OF A SUDDEN...    "
 }
 
 ground = {
@@ -46,19 +70,25 @@ ground = {
 }
 
 function _init()
-    -- music(0)
+    -- local player_speed = 0.7
     local player_speed = 1
-    -- local player_speed = 10
+    -- local player_start_x = 125*8
+    local player_start_x = 900
+    -- local player_start_y = bottom_floor_y
+
+    local player_start_y = top_floor_y
+    cam_y = 0
 
 
-    player = make_entity("player", 1, 125*8, 60*8, 8, 8, player_speed, 2.8) -- bottom right (start)
+    player = make_entity("player", 1, player_start_x, player_start_y, 8, 8, player_speed, 2.8) -- bottom right (start)
     -- player = make_entity("player", 1, 10*8, 60*8, 8, 8, player_speed, 2.8) -- bottom left
     -- player = make_entity("player", 1, 108*8, ground.y-32, 8, 8, player_speed, 2.8) -- top right
     -- player = make_entity("player", 1, 64, ground.y-32, 8, 8, player_speed, 2.8) -- top left
     player.last_dir = 0
     matty = make_entity("matty", 5, 121*8, 60*8, 8, 8, 1, 1)
     charlie = make_entity("charlie", 3, 120*8, 60*8, 8, 8, 1, 1)
-    browser = make_entity("browser", 49, 920, 96, 8, 8, 1, 4)
+    browser = make_entity("browser", 49, 117*8, 96, 8, 8, 1, 4)
+    dragon_head = make_entity("dragon_head", 49, 115*8, 63, 8, 8, -2, 4)
     intro_browser = make_entity("browser", 49, 100*8, player.y, 8, 8, 0.75, 1)
     intro_enemy = make_entity("enemy", 7, 129*8, player.y, 8, 8, 0.25, 1)
 
@@ -87,11 +117,21 @@ function _init()
     door3.teleport_to_y = door_y + 8
     door3.cam_y_to = bottom_screen_cam_y
 
+    _init_main()
+    -- _init_intro()
+
+end
+
+function _init_intro()
+    music(music_intro)
+
     update_state = _update_intro
     draw_state = _draw_intro
 end
 
 function _init_main()
+    music(music_main_bgm)
+
     intro_enemy = nil
     intro_browser = nil
 
@@ -100,8 +140,27 @@ function _init_main()
     charlie.x = 952
     charlie.y = matty.y
 
+    init_enemies()
+
     update_state = _update_main
     draw_state = _draw_main
+end
+
+function init_enemies()
+-- Bottom floor y: 480
+-- 	x: 704, 568, 312, 96
+
+-- Top floor y: 96
+-- 	x 192, 352, 568, 832
+
+    make_enemy("enemy", 7, 704, bottom_floor_y)
+    make_enemy("enemy", 7, 568, bottom_floor_y)
+    make_enemy("enemy", 7, 312, bottom_floor_y)
+
+    make_enemy("enemy", 7, 192, top_floor_y)
+    make_enemy("enemy", 7, 352, top_floor_y)
+    make_enemy("enemy", 7, 568, top_floor_y)
+    make_enemy("enemy", 7, 832, top_floor_y)
 end
 
 function _draw()
@@ -119,15 +178,15 @@ function current_intro_max()
     end
 
     if intro_phase == 1 then
-        return 36*8
+        return 29*8
     end
 
     if intro_phase == 2 then
-        return 25*8
+        return 38*8
     end
 
     if intro_phase == 3 then
-        return 6*8
+        return 12*8
     end
 end
 
@@ -139,6 +198,12 @@ function _update_intro()
     if intro_timer >= timer_max then
         intro_phase = intro_phase + 1
         intro_timer = 0
+
+        if intro_phase == 2 then
+            intro_browser.speed = 0.3
+
+            music(music_danger)
+        end
 
         if intro_phase == 4 then
             _init_main()
@@ -170,12 +235,25 @@ function update_current_intro_phase()
         if intro_browser.x < (charlie.x - 16) then
             intro_browser.x = intro_browser.x + intro_browser.speed
         else
+            if not has_played_cage then
+                sfx(sfx_cage)
+
+                has_played_cage = true
+            end
+
             intro_draw_cage = true
         end
 
         if intro_enemy.x > player.x + 8 then
             intro_enemy.x = intro_enemy.x - intro_enemy.speed
         else
+            if not has_played_bonk then
+                music(-1)
+                sfx(sfx_bonk)
+
+                has_played_bonk = true
+            end
+
             intro_player_disabled = true
             player.sprite = 17
         end
@@ -194,6 +272,13 @@ function update_current_intro_phase()
     end
 
     if intro_phase == 3 then
+        if not has_played_alert then
+            music(-1)
+            sfx(sfx_alert)
+
+            has_played_alert = true
+        end
+
         player.sprite = 1
     end
 end
@@ -260,26 +345,13 @@ function player_is_on_bottom_screen()
     return player.y > 148
 end
 
-function make_enemy()
-    local enemy_x = 0
+function make_enemy(_type, _sprite, _x, _y)
+    local enemy = make_entity(_type, _sprite, _x, _y, 8, 8, 1.25, 1)
 
-    if player_is_on_bottom_screen() then
-        enemy_x = player.x - 128
-    else
-        enemy_x = player.x + 128
-    end
+    enemy.start_x = enemy.x
+    enemy.start_y = enemy.y
 
-    if enemy_x > max_x then
-        enemy_x = max_x
-    end
-
-    if enemy_x < 0 then
-        enemy_x = 0
-    end
-
-    local enemy = make_entity("enemy", 7, enemy_x, player.y, 8, 8, 0.75, 1)
-
-    return enemy
+    add(enemies, enemy)
 end
 
 function make_star()
@@ -305,26 +377,36 @@ function make_star()
 end
 
 function update_enemies()
-    if (enemy_timer > enemy_spawn_time) and (cam_x > 0 and cam_x < 760) then
-        add(enemies, make_enemy())
-        enemy_timer = 0
-    end
-
     for enemy in all(enemies) do
-        update_frames(enemy)
+            update_frames(enemy)
 
-        if player_is_on_bottom_screen() then
-            enemy.x = enemy.x + enemy.speed
-        else
-            enemy.x = enemy.x - enemy.speed
+        if (enemy.x + enemy.speed > enemy.start_x + enemy_patrol_radius) or (enemy.x + enemy.speed < enemy.start_x - enemy_patrol_radius) then
+            enemy.speed = -enemy.speed
         end
+
+        enemy.x = enemy.x + enemy.speed
     end
 
-    for enemy in all(enemies) do
-        if enemy.x < 0 or enemy.x > max_x then
-            del(enemies, enemy)
-        end
-    end
+    -- if (enemy_timer > enemy_spawn_time) and (cam_x > 0 and cam_x < 760) then
+        -- add(enemies, make_enemy())
+        -- enemy_timer = 0
+    -- end
+
+    -- for enemy in all(enemies) do
+    --     update_frames(enemy)
+
+    --     if player_is_on_bottom_screen() then
+    --         enemy.x = enemy.x + enemy.speed
+    --     else
+    --         enemy.x = enemy.x - enemy.speed
+    --     end
+    -- end
+
+    -- for enemy in all(enemies) do
+    --     if enemy.x < 0 or enemy.x > max_x then
+    --         del(enemies, enemy)
+    --     end
+    -- end
 end
 
 function update_frames(entity)
@@ -398,6 +480,7 @@ function _update_main()
     update_stars()
     update_enemies()
     update_browser()
+    update_dragon_head()
     update_frames(charlie)
     update_frames(matty)
     update_frames(browser)
@@ -427,13 +510,25 @@ function _update_main()
     update_camera()
 end
 
+function update_dragon_head()
+    if dragon_head.y <= 64 then
+        dragon_head_ymove = 1.65
+    end
+
+    if dragon_head.y >= 96 then
+        dragon_head_ymove = -1.65
+    end
+
+    dragon_head.y = dragon_head.y + dragon_head_ymove
+end
+
 function update_browser()
     if browser.y <= 64 then
-        browser_ymove = 2
+        browser_ymove = 1.65
     end
 
     if browser.y >= 96 then
-        browser_ymove = -2
+        browser_ymove = -1.65
     end
 
     browser.y = browser.y + browser_ymove
@@ -495,6 +590,10 @@ function get_input()
 end
 
 function did_collide_x()
+    if player.sprite == 17 then
+        return
+    end
+
     local collide_x = false
 
     if player.x + xmove < 0 or player.x + xmove > max_x then
@@ -541,12 +640,21 @@ function did_collide_x()
         enemy_collide = true
     end
 
+    if did_collide_with(dragon_head) then
+        collide_x = true
+        enemy_collide = true
+    end
+
     if did_collide_with(matty) or did_collide_with(charlie) then
         you_win_dude()
     end
 
     if xmove != 0 and will_hit_block_x() then
         collide_x = true
+    end
+
+    if enemy_collide == true then
+        sfx(sfx_bonk)
     end
 
     return collide_x
@@ -625,7 +733,7 @@ end
 
 function debug_info()
     debug_y_pos = 18
-    debug_x_pos = 64
+    debug_x_pos = 40
 
     -- debug_print("cam: " ..cam_x ..", " ..cam_y)
     -- debug_print("on_bottom: " ..(player_is_on_bottom_screen() and "true" or "false"))
@@ -633,14 +741,14 @@ function debug_info()
     -- debug_print("ymove: " .. ymove)
     -- debug_print("block_below: " .. (block_below and "true" or "false"))
     -- debug_print("jumping: " .. (player.jumping and "true" or "false"))
-    -- debug_print("y: " .. player.y)
+    debug_print("x, y: " .. player.x .."," ..player.y)
     -- debug_print("ceil: " ..ceil(player.y / 8) * 8)
 end
 
 function debug_print(wat)
     debug_y_pos = debug_y_pos + 6
 
-    print(wat, cam_x + debug_x_pos, cam_y + debug_y_pos, 7)
+    print(wat, cam_x + debug_x_pos, cam_y + debug_y_pos, 8)
 end
 
 function draw_background()
@@ -665,17 +773,22 @@ function _draw_main()
     draw_player()
 
     draw_scene()
-    draw_matty_and_charles()
     draw_hearts()
 
     if you_win == false and update_state != _update_intro then
-        draw_cage()
         draw_enemies()
         draw_stars()
         draw_browser()
+        draw_dragon_head()
     end
 
     draw_foreground()
+    draw_matty_and_charles()
+
+    if you_win == false and update_state != _update_intro then
+        draw_cage()
+    end
+
 
     if you_win == true then
         draw_winning_things()
@@ -719,6 +832,11 @@ function draw_browser()
     spr(browser.sprite, browser.x, browser.y)
 end
 
+function draw_dragon_head()
+    sspr(13*8, 1*8, 16, 16, dragon_head.x, dragon_head.y)
+    -- spr(dragon_head.sprite, dragon_head.x, dragon_head.y)
+end
+
 function draw_stars()
     for star in all(stars) do
         spr(star.sprite, star.x, star.y)
@@ -727,7 +845,9 @@ end
 
 function draw_enemies()
     for enemy in all(enemies) do
-        spr(enemy.sprite, enemy.x, enemy.y, 1, 1, player_is_on_bottom_screen())
+        local flip_x = enemy.speed > 0
+
+        spr(enemy.sprite, enemy.x, enemy.y, 1, 1, flip_x)
     end
 end
 
@@ -929,13 +1049,48 @@ __map__
 0000000000000000002900000000290029000000000000290029000000000000290000000029000000290000000029002900000000000029002900000000000029000000002900000029000000002900290000000000002900290000000000000029000000002900000029000000002900290000000000000000000000000000
 __sfx__
 000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-001200001205000000120500000012050000001205000000130500000013050000001305000000130500000015050000001505000000150500000015050000001705000000170500000017050000001705000000
-001200001e7321e1321e7321e132000000000000000000001f7321f1321f7321f13200000000000000000000211322113221132211321f1321f1321f1321f1322373223132237322313200000000000000000000
+001200001203000000120300000012030000001203000000130300000013030000001303000000130300000015030000001503000000150300000015030000001703000000170300000017030000001703000000
+001200001e7221e1221e7221e122000000000000000000001f7221f1221f7221f12200000000000000000000211222112221122211221f1221f1221f1221f1222372223122237222312200000000000000000000
 001200000000000000000000663500000000000663506200000000000006600000000000006635000000663500000000000000006635000000000006635062000000000000066000000000000066350663506635
+0018000018533185321853218532185321853218532185001f5321f5321f5321f5321f5321f5321f532000001d5321d5321d5321d5321d5321d5321d532000001c5321c5321c5321c5321c5321c5321c5321c532
+001800000000000000066050662506625000000662506200000000000006600066250660000000066250660000000000000660506625066250000006625062000000000000066000662506600000000662506600
+001800001c5311c5321c5321c5321c5321c5321c53200000245322453224532245322453224532245320000021532215322153221532215322153221532245112451124511245112451123521235212352123521
+001a00001105512055110551205511055120551105512055130551405513055140551305214052130521405211055120551105512055110551205511055120551305514055130551405513052140521305214052
+001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+000800000455004610015500200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+000800000355004610065500461000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+0002000007140091500d1501014013140181401e140241302a1303413039120000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 __music__
 00 01024344
 01 01024344
 00 01024344
 00 01020344
 02 01020344
+00 41424344
+00 41424344
+00 41424344
+00 41424344
+00 41424344
+00 41424344
+00 41424344
+00 41424344
+00 41424344
+00 41424344
+00 41424344
+00 41424344
+00 41424344
+00 41424344
+00 41424344
+01 04064544
+03 04060544
+00 41424344
+00 41424344
+00 41424344
+00 41424344
+00 41424344
+00 41424344
+00 41424344
+00 41424344
+03 07424344
 
