@@ -176,23 +176,13 @@ end
 
 function _draw_title()
     cls(0)
-    rectfill(0, 0, 127, 127, 1)
+    rectfill(0, 0, 63, 63, 1) -- top left
+    rectfill(64, 0, 127, 63, 2) -- top right
+    rectfill(64, 64, 127, 127, 1) -- bottom right
+    rectfill(0, 63, 63, 127, 2) -- bottom left
     rect(0, 0, 127, 127, 13)
 
-    local logo_start_x = 20
-    local logo_start_y = 32
-    local spacing = 0
-    local spacer = 12
-
-    for sprite_num = 68, 74, 1 do
-        spr(sprite_num, logo_start_x + spacing, logo_start_y)
-        spacing = spacing + spacer
-
-        if sprite_num == 72 then
-            spr(sprite_num, logo_start_x + spacing, logo_start_y)
-            spacing = spacing + spacer
-        end
-    end
+    draw_logo()
 
     for x_pos = 16, 104, 8 do
         spr(67, x_pos, player.y+8)
@@ -213,6 +203,23 @@ function _draw_title()
     print("Press Up Arrow to Start!", 16, 96, 14)
     print("Press Up Arrow to Start!", 16, 96+8, 12)
     print("Press Up Arrow to Start!", 16, 96+16, 7)
+end
+
+function draw_logo()
+    local logo_start_x = 18
+    local logo_start_y = 32
+    local spacing = 0
+    local spacer = 12
+
+    for sprite_num = 68, 74, 1 do
+        spr(sprite_num, logo_start_x + spacing, logo_start_y)
+        spacing = spacing + spacer
+
+        if sprite_num == 72 then
+            spr(sprite_num, logo_start_x + spacing, logo_start_y)
+            spacing = spacing + spacer
+        end
+    end
 end
 
 function _init_intro()
