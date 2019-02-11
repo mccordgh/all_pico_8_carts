@@ -1,2 +1,4 @@
 *.DS_Store*
 workspace/.DS_Store
+config.txt
+log.txt
