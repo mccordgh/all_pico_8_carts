@@ -49,7 +49,7 @@ stars = {}
 star_timer = 0
 enemy_timer = 0
 enemy_spawn_time = 140
-star_spawn_time = 60
+star_spawn_time = 90
 max_x = 1016
 max_sprites = 2
 frame_change_number = 10
@@ -57,6 +57,7 @@ blue_check_sprite = 64
 red_check_sprite = 65
 reposition_y = 0
 meanie_ymove = 0
+dragon_head_ymove = killa_pounce_speed
 intro_player_disabled = false
 intro_draw_cage = false
 intro_phase = 0
@@ -79,13 +80,13 @@ ground = {
 }
 
 function _init()
-    player_speed = 0.7
+    player_speed = 0.8
     player_start_x = 125*8
     player_start_y = bottom_floor_y
 
     -- debugging type settings below
     local player_speed = 1
-    local player_start_x = 946
+    local player_start_x = 900
     local player_start_y = top_floor_y
     cam_y = 0
 
@@ -167,8 +168,7 @@ function _init_ending()
     credits_y = 128
 
     -- credit_speed = 4
-    credit_speed = 1
-    credit_timer = 0
+    credit_speed = 3
     -- credits_x = 0
     -- credits_y = 0
 
@@ -177,6 +177,8 @@ function _init_ending()
 
         credits_y = credits_y + 16
     end
+
+    credit_timer = 0
 
     update_state = _update_ending
     draw_state = _draw_ending
@@ -200,9 +202,8 @@ function _update_ending()
     credit_timer = credit_timer + 1
 
     if credit_timer % credit_speed == 0 then
-        -- credit_timer = 0
 
-        if credit_timer < 460 then
+        if credit_timer < (460 * credit_speed) then
             for item in all(credits) do
                 item.y = item.y - 1
             end
@@ -303,7 +304,7 @@ function _draw_title()
 
     print("a valentines day gift starring:", 3, 30, 7)
 
-    print("starring:", 48, 40, 7)
+    -- print("starring:", 48, 40, 7)
 
     local name_x_offset = 4
     local name_y_offset = 10
@@ -414,8 +415,8 @@ end
 
 function current_intro_max()
     if intro_phase == 0 then
-        -- return 60*9
-        return 1
+        return 60*9
+        -- return 1
     end
 
     if intro_phase == 1 then
@@ -717,7 +718,7 @@ function _update_main()
     if you_win == true then
         time_since_wonnered = time_since_wonnered + 1
 
-        if time_since_wonnered > 1 then
+        if time_since_wonnered > 60*6 then
             _init_ending()
         end
     end
