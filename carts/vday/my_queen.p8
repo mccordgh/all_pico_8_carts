@@ -14,12 +14,15 @@ has_played_bonk = false
 has_played_alert = false
 has_played_cage = false
 
--- Patrol radius 100 both ways
+credits = {}
 
--- Bottom floor y: 480
+
+-- patrol radius 100 both ways
+
+-- bottom floor y: 480
 -- 	x: 740, 568, 312, 96
 
--- Top floor y: 96
+-- top floor y: 96
 -- 	x 192, 352, 568, 832
 
 enemy_patrol_radius = 8*7
@@ -53,17 +56,20 @@ frame_change_number = 10
 blue_check_sprite = 64
 red_check_sprite = 65
 reposition_y = 0
-browser_ymove = 0
+meanie_ymove = 0
 intro_player_disabled = false
 intro_draw_cage = false
 intro_phase = 0
 intro_show_text = false
 intro_timer = 0
 intro_text = {
-    first_line = "qUEEN aTHENA, mATTY, n cHARLES",
-    second_line = "WHERE ENJOYING A LOVELY PICNIC",
-    third_line = "    WHEN ALL OF A SUDDEN...    "
+    first_line = "queen athena, matty, n charles",
+    second_line = " were enjoying a lovely picnic",
+    third_line = "    when all of a sudden...    "
 }
+
+killa_pounce_speed = 3
+time_since_wonnered = 0
 
 ground = {
     x = 0,
@@ -77,11 +83,11 @@ function _init()
     player_start_x = 125*8
     player_start_y = bottom_floor_y
 
-    -- DEBUGGING TYPE SETTINGS BELOW
-    -- local player_speed = 1
-    -- local player_start_x = 900
-    -- local player_start_y = top_floor_y
-    -- cam_y = 0
+    -- debugging type settings below
+    local player_speed = 1
+    local player_start_x = 946
+    local player_start_y = top_floor_y
+    cam_y = 0
 
 
     player = make_entity("player", 1, player_start_x, player_start_y, 8, 8, player_speed, 2.8) -- bottom right (start)
@@ -91,9 +97,9 @@ function _init()
     player.last_dir = 0
     matty = make_entity("matty", 5, 121*8, 60*8, 8, 8, 1, 1)
     charlie = make_entity("charlie", 3, 120*8, 60*8, 8, 8, 1, 1)
-    browser = make_entity("browser", 49, 117*8, 96, 8, 8, 1, 4)
-    dragon_head = make_entity("dragon_head", 49, 115*8, 63, 8, 8, -2, 4)
-    intro_browser = make_entity("browser", 49, 100*8, player.y, 8, 8, 0.75, 1)
+    meanie = make_entity("meanie", 49, 117*8, 96, 8, 8, 1, 4)
+    dragon_head = make_entity("dragon_head", 49, 115*8, 32, 8, 8, -2, 4)
+    intro_meanie = make_entity("meanie", 49, 100*8, player.y, 8, 8, 0.75, 1)
     intro_enemy = make_entity("enemy", 7, 129*8, player.y, 8, 8, 0.25, 1)
 
     -- matty later x,y 961, ground.y-8
@@ -121,10 +127,101 @@ function _init()
     door3.teleport_to_y = door_y + 8
     door3.cam_y_to = bottom_screen_cam_y
 
-    -- _init_main()
+    _init_main()
     -- _init_intro()
-    _init_title()
+    -- _init_title()
 
+end
+
+function _init_ending()
+    ending_text = {}
+
+    ending_text[1] = "my queen"
+    ending_text[2] = ""
+    ending_text[3] = ""
+    ending_text[4] = ""
+    ending_text[5] = ""
+    ending_text[6] = "created by:"
+    ending_text[7] = "mATTHEW mCcORD"
+    ending_text[8] = ""
+    ending_text[9] = ""
+    ending_text[10] = ""
+    ending_text[11] = ""
+    ending_text[12] = "additional support by:"
+    ending_text[13] = "cHARLIE \"cHARLITO\" pEREZ-mCcORD"
+    ending_text[14] = ""
+    ending_text[15] = ""
+    ending_text[16] = ""
+    ending_text[17] = ""
+    ending_text[18] = "made with love in"
+    ending_text[19] = "XX hours over"
+    ending_text[20] = "XX days"
+    ending_text[21] = ""
+    ending_text[22] = ""
+    ending_text[23] = ""
+    ending_text[24] = ""
+    ending_text[25] = "i love you!!"
+    ending_text[26] = "hAPPY vALENTINES dAY!"
+
+    credits_x = 63
+    credits_y = 128
+
+    -- credit_speed = 4
+    credit_speed = 1
+    credit_timer = 0
+    -- credits_x = 0
+    -- credits_y = 0
+
+    for i=1, 26, 1 do
+        add(credits, create_credits_item(ending_text[i], credits_x, credits_y))
+
+        credits_y = credits_y + 16
+    end
+
+    update_state = _update_ending
+    draw_state = _draw_ending
+end
+
+function create_credits_item(_text, _x, _y)
+    local x_offset = flr(#_text / 2) * 4
+
+    local credits_item = {
+        text = _text,
+        x = _x - x_offset,
+        y = _y,
+    }
+
+    return credits_item
+end
+
+function _update_ending()
+    camera(0,0)
+
+    credit_timer = credit_timer + 1
+
+    if credit_timer % credit_speed == 0 then
+        -- credit_timer = 0
+
+        if credit_timer < 460 then
+            for item in all(credits) do
+                item.y = item.y - 1
+            end
+        end
+    end
+end
+
+function _draw_ending()
+    cls()
+    draw_checkered_bg()
+    debug_info()
+
+    for item in all(credits) do
+        if not (item.y < 0) then
+            debug_credit_item = item
+
+            print(item.text, item.x, item.y, 7)
+        end
+    end
 end
 
 function _init_title()
@@ -139,14 +236,14 @@ function _init_title()
     charlie.x = 101
     charlie.y = player.y
 
-    browser.x = 80
-    browser.y = 80-4
+    meanie.x = 80
+    meanie.y = 80-4
 
     dragon_head.x = 64-17
     dragon_head.y = 8
 
     intro_enemy.x = 32+9
-    intro_enemy.y = browser.y
+    intro_enemy.y = meanie.y
 
     update_state = _update_title
     draw_state = _draw_title
@@ -158,7 +255,7 @@ function _update_title()
     update_frames(player)
     update_frames(charlie)
     update_frames(matty)
-    update_frames(browser)
+    update_frames(meanie)
     update_frames(dragon_head)
     update_frames(intro_enemy)
 
@@ -169,47 +266,62 @@ function _update_title()
 end
 
 function get_title_input()
-    if btn(2) then
+    if btn(3) then
         _init_intro()
     end
 end
 
-function _draw_title()
-    cls(0)
+function draw_checkered_bg()
     rectfill(0, 0, 63, 63, 1) -- top left
     rectfill(64, 0, 127, 63, 2) -- top right
     rectfill(64, 64, 127, 127, 1) -- bottom right
-    rectfill(0, 63, 63, 127, 2) -- bottom left
+    rectfill(0, 64, 63, 127, 2) -- bottom left
     rect(0, 0, 127, 127, 13)
+end
+
+function _draw_title()
+    cls(0)
+    draw_checkered_bg()
 
     draw_logo()
 
-    for x_pos = 16, 104, 8 do
-        spr(67, x_pos, player.y+8)
-    end
+    -- for x_pos = 16, 104, 8 do
+    --     spr(67, x_pos, player.y+8)
+    -- end
 
-    for x_pos = 16+16, 104-16, 8 do
-        spr(67, x_pos, browser.y+8)
-    end
+    -- for x_pos = 16+16, 104-16, 8 do
+    --     spr(67, x_pos, meanie.y+8)
+    -- end
 
     draw_player()
     draw_matty_and_charles()
-    draw_browser()
+    draw_meanie()
     -- draw_dragon_head()
     -- sspr(13*8, 1*8, 16, 16, dragon_head.x+18, dragon_head.y, 16, 16, true) -- another dragon head
     draw_intro_enemy()
     draw_hearts()
 
-    print("a vALENTINE'S DAY GIFT", 20, 30, 7)
-    print("bY mATTHEW mCcORD", 28, 42, 7)
+    print("a valentines day gift starring:", 3, 30, 7)
 
-    print("Press Up Arrow to Jump!", 16, 96, 14)
-    print("Press Up Arrow to Jump!", 16, 96+8, 12)
-    print("Press Up Arrow to Jump!", 16, 96+16, 7)
+    print("starring:", 48, 40, 7)
+
+    local name_x_offset = 4
+    local name_y_offset = 10
+    print("mATTY", matty.x-name_x_offset-1, matty.y+name_y_offset)
+    print("aTHENA", player.x-name_x_offset-3, player.y+name_y_offset)
+    print("cHARLIE", charlie.x-name_x_offset-6, charlie.y+name_y_offset)
+    print("fEAR", intro_enemy.x-name_x_offset, intro_enemy.y+name_y_offset)
+    print("mEANIE", meanie.x-name_x_offset-4, meanie.y+name_y_offset)
+
+
+    local instructions_y = 98
+    print("\148 to jump!", 42, instructions_y, 10)
+    print("\139 \145 to move!", 36, instructions_y+8, 7)
+    print("\131 to begin!", 42, instructions_y+16, 10)
 end
 
 function draw_logo()
-    local logo_start_x = 18
+    local logo_start_x = 19
     local logo_start_y = 8
     local spacing = 0
     local spacer = 12
@@ -232,8 +344,6 @@ function draw_logo()
 end
 
 function _init_intro()
-    -- music(music_intro)
-
     hearts = {}
 
     matty.x = 121*8
@@ -245,8 +355,8 @@ function _init_intro()
     charlie.x = 120*8
     charlie.y = 60*8
 
-    browser.x = 117*8
-    browser.y = 96
+    meanie.x = 117*8
+    meanie.y = 96
 
     dragon_head.x = 115*8
     dragon_head.y = 63
@@ -264,7 +374,7 @@ function _init_main()
     music(music_main_bgm)
 
     intro_enemy = nil
-    intro_browser = nil
+    intro_meanie = nil
 
     matty.x = 961
     matty.y = ground.y-8
@@ -278,10 +388,10 @@ function _init_main()
 end
 
 function init_enemies()
--- Bottom floor y: 480
+-- bottom floor y: 480
 -- 	x: 704, 568, 312, 96
 
--- Top floor y: 96
+-- top floor y: 96
 -- 	x 192, 352, 568, 832
 
     make_enemy("enemy", 7, 704, bottom_floor_y)
@@ -304,13 +414,12 @@ end
 
 function current_intro_max()
     if intro_phase == 0 then
-        -- return 60*12
+        -- return 60*9
         return 1
     end
 
     if intro_phase == 1 then
         return 29*8
-        -- return 1
     end
 
     if intro_phase == 2 then
@@ -325,7 +434,7 @@ end
 function _update_intro()
     intro_timer = intro_timer + 1
 
-    if intro_timer > 60*4 and intro_phase == 0 then
+    if intro_timer > 60*1 and intro_phase == 0 then
         intro_show_text = true
     end
 
@@ -336,7 +445,7 @@ function _update_intro()
         intro_timer = 0
 
         if intro_phase == 2 then
-            intro_browser.speed = 0.3
+            intro_meanie.speed = 0.3
 
             music(music_danger)
         end
@@ -359,8 +468,8 @@ function _update_intro()
         update_frames(intro_enemy)
     end
 
-    if intro_browser != nil then
-        update_frames(intro_browser)
+    if intro_meanie != nil then
+        update_frames(intro_meanie)
     end
 
     update_camera()
@@ -368,8 +477,8 @@ end
 
 function update_current_intro_phase()
     if intro_phase == 1 then
-        if intro_browser.x < (charlie.x - 16) then
-            intro_browser.x = intro_browser.x + intro_browser.speed
+        if intro_meanie.x < (charlie.x - 16) then
+            intro_meanie.x = intro_meanie.x + intro_meanie.speed
         else
             if not has_played_cage then
                 sfx(sfx_cage)
@@ -396,10 +505,10 @@ function update_current_intro_phase()
     end
 
     if intro_phase == 2 then
-        if intro_browser.x > 106*8 then
-            intro_browser.x = intro_browser.x - intro_browser.speed
-            charlie.x = charlie.x - intro_browser.speed
-            matty.x = matty.x - intro_browser.speed
+        if intro_meanie.x > 106*8 then
+            intro_meanie.x = intro_meanie.x - intro_meanie.speed
+            charlie.x = charlie.x - intro_meanie.speed
+            matty.x = matty.x - intro_meanie.speed
         end
 
         if intro_enemy.x < 129*8 then
@@ -435,7 +544,7 @@ function _draw_intro()
     end
 
     if intro_phase == 1 or intro_phase == 2 then
-        draw_intro_browser()
+        draw_intro_meanie()
         draw_intro_enemy()
     end
 
@@ -450,8 +559,8 @@ function _draw_intro()
 end
 
 function draw_speech_balloon()
-    local balloon_x = matty.x-13
-    local balloon_y = matty.y-24
+    local balloon_x = matty.x-10
+    local balloon_y = matty.y-18
 
     -- sspr(4*8, 6*8, 16, 16, balloon_x, balloon_y)
     rectfill(balloon_x, balloon_y, balloon_x+19, balloon_y+6, 7)
@@ -605,6 +714,14 @@ end
 function _update_main()
     xmove = 0
 
+    if you_win == true then
+        time_since_wonnered = time_since_wonnered + 1
+
+        if time_since_wonnered > 1 then
+            _init_ending()
+        end
+    end
+
     if you_win == false then
         star_timer = star_timer + 1
         enemy_timer = enemy_timer + 1
@@ -628,9 +745,9 @@ function _update_main()
     if you_win == false then
         update_stars()
         update_enemies()
-        update_browser()
+        update_meanie()
         update_dragon_head()
-        update_frames(browser)
+        update_frames(meanie)
     end
 
     local collide_x = did_collide_x()
@@ -662,27 +779,27 @@ function _update_main()
 end
 
 function update_dragon_head()
-    if dragon_head.y <= 64 then
-        dragon_head_ymove = 1.65
+    if dragon_head.y <= 32 then
+        dragon_head_ymove = killa_pounce_speed
     end
 
-    if dragon_head.y >= 96 then
-        dragon_head_ymove = -1.65
+    if dragon_head.y >= 88 then
+        dragon_head_ymove = -killa_pounce_speed
     end
 
     dragon_head.y = dragon_head.y + dragon_head_ymove
 end
 
-function update_browser()
-    if browser.y <= 64 then
-        browser_ymove = 1.65
+function update_meanie()
+    if meanie.y <= 32 then
+        meanie_ymove = killa_pounce_speed
     end
 
-    if browser.y >= 96 then
-        browser_ymove = -1.65
+    if meanie.y >= 96 then
+        meanie_ymove = -killa_pounce_speed
     end
 
-    browser.y = browser.y + browser_ymove
+    meanie.y = meanie.y + meanie_ymove
 end
 
 function reset_player_jump()
@@ -786,7 +903,7 @@ function did_collide_x()
         end
     end
 
-    if did_collide_with(browser) then
+    if did_collide_with(meanie) then
         collide_x = true
         enemy_collide = true
     end
@@ -819,7 +936,7 @@ function you_win_dude()
         stars = {}
         star_timer = 0
         enemy_timer = 0
-        browser.y = 0
+        meanie.y = 0
         dragon_head.y = 0
         has_won = true
     end
@@ -892,7 +1009,12 @@ function debug_info()
     debug_y_pos = 18
     debug_x_pos = 40
 
-    -- debug_print("cam: " ..cam_x ..", " ..cam_y)
+    -- if credits[1] then
+    --     debug_print(#credits[1].text)
+    -- end
+    if debug_credit_item and debug_credit_item.text != "" then
+        debug_print(debug_credit_item.x ..", " ..debug_credit_item.y)
+    end
     -- debug_print("on_bottom: " ..(player_is_on_bottom_screen() and "true" or "false"))
     -- debug_print("player: " ..player.x ..", " ..player.y)
     -- debug_print("ymove: " .. ymove)
@@ -935,7 +1057,7 @@ function _draw_main()
     if you_win == false and update_state != _update_intro then
         draw_enemies()
         draw_stars()
-        draw_browser()
+        draw_meanie()
         draw_dragon_head()
     end
 
@@ -944,6 +1066,7 @@ function _draw_main()
 
     if you_win == false and update_state != _update_intro then
         draw_cage()
+        draw_speech_balloon()
     end
 
 
@@ -973,10 +1096,10 @@ function draw_matty_and_charles()
     spr(charlie.sprite, charlie.x, charlie.y, 1, 1, should_flip)
 end
 
-function draw_intro_browser()
+function draw_intro_meanie()
     local flip_me = intro_phase < 2
 
-    spr(intro_browser.sprite, intro_browser.x, intro_browser.y, 1, 1, flip_me)
+    spr(intro_meanie.sprite, intro_meanie.x, intro_meanie.y, 1, 1, flip_me)
 end
 
 function draw_intro_enemy()
@@ -985,8 +1108,8 @@ function draw_intro_enemy()
     spr(intro_enemy.sprite, intro_enemy.x, intro_enemy.y, 1, 1, flip_me)
 end
 
-function draw_browser()
-    spr(browser.sprite, browser.x, browser.y)
+function draw_meanie()
+    spr(meanie.sprite, meanie.x, meanie.y)
 end
 
 function draw_dragon_head()
@@ -1037,8 +1160,8 @@ function draw_winning_things()
 
     rectfill(cam_x, yy - 1, cam_x + 128, yy + 16 + 1, 8)
     rectfill(cam_x + 1, yy, cam_x + 126, yy + 16, 14)
-    print("you found matty and charlie!", cam_x + 4, 40, 0)
-    print("we love you, our queen!!! <3", cam_x + 4, 48, 0)
+    print("you found matty and charlie!", cam_x + 4, 40, 1)
+    print("we love you, our queen!!! <3", cam_x + 4, 48, 1)
 end
 
 __gfx__
