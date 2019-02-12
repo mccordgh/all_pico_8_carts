@@ -49,7 +49,7 @@ stars = {}
 star_timer = 0
 enemy_timer = 0
 enemy_spawn_time = 140
-star_spawn_time = 60
+star_spawn_time = 90
 max_x = 1016
 max_sprites = 2
 frame_change_number = 10
@@ -57,6 +57,7 @@ blue_check_sprite = 64
 red_check_sprite = 65
 reposition_y = 0
 meanie_ymove = 0
+dragon_head_ymove = killa_pounce_speed
 intro_player_disabled = false
 intro_draw_cage = false
 intro_phase = 0
@@ -84,10 +85,10 @@ function _init()
     player_start_y = bottom_floor_y
 
     -- debugging type settings below
-    -- local player_speed = 1
-    -- local player_start_x = 946
-    -- local player_start_y = top_floor_y
-    -- cam_y = 0
+    local player_speed = 1
+    local player_start_x = 900
+    local player_start_y = top_floor_y
+    cam_y = 0
 
 
     player = make_entity("player", 1, player_start_x, player_start_y, 8, 8, player_speed, 2.8) -- bottom right (start)
@@ -142,33 +143,32 @@ function _init_ending()
     ending_text[4] = ""
     ending_text[5] = ""
     ending_text[6] = "created by:"
-    ending_text[7] = "mATTHEW mCcORD"
+    ending_text[7] = "matthew mccord"
     ending_text[8] = ""
     ending_text[9] = ""
     ending_text[10] = ""
     ending_text[11] = ""
     ending_text[12] = "additional support by:"
-    ending_text[13] = "cHARLIE \"cHARLITO\" pEREZ-mCcORD"
+    ending_text[13] = "charlie \"charlito\" perez-mccord"
     ending_text[14] = ""
     ending_text[15] = ""
     ending_text[16] = ""
     ending_text[17] = ""
-    ending_text[18] = "made with love in"
-    ending_text[19] = "XX hours over"
-    ending_text[20] = "XX days"
+    ending_text[18] = "started on jan 30, 2019"
+    ending_text[19] = "made with love for vday 2019"
+    ending_text[20] = ""
     ending_text[21] = ""
     ending_text[22] = ""
     ending_text[23] = ""
     ending_text[24] = ""
     ending_text[25] = "i love you!!"
-    ending_text[26] = "hAPPY vALENTINES dAY!"
+    ending_text[26] = "happy valentines day!"
 
     credits_x = 63
     credits_y = 128
 
     -- credit_speed = 4
-    credit_speed = 1
-    credit_timer = 0
+    credit_speed = 3
     -- credits_x = 0
     -- credits_y = 0
 
@@ -177,6 +177,8 @@ function _init_ending()
 
         credits_y = credits_y + 16
     end
+
+    credit_timer = 0
 
     update_state = _update_ending
     draw_state = _draw_ending
@@ -200,9 +202,8 @@ function _update_ending()
     credit_timer = credit_timer + 1
 
     if credit_timer % credit_speed == 0 then
-        -- credit_timer = 0
 
-        if credit_timer < 460 then
+        if credit_timer < (460 * credit_speed) then
             for item in all(credits) do
                 item.y = item.y - 1
             end
@@ -303,15 +304,15 @@ function _draw_title()
 
     print("a valentines day gift starring:", 3, 30, 7)
 
-    print("starring:", 48, 40, 7)
+    -- print("starring:", 48, 40, 7)
 
     local name_x_offset = 4
     local name_y_offset = 10
-    print("mATTY", matty.x-name_x_offset-1, matty.y+name_y_offset)
-    print("aTHENA", player.x-name_x_offset-3, player.y+name_y_offset)
-    print("cHARLIE", charlie.x-name_x_offset-6, charlie.y+name_y_offset)
-    print("fEAR", intro_enemy.x-name_x_offset, intro_enemy.y+name_y_offset)
-    print("mEANIE", meanie.x-name_x_offset-4, meanie.y+name_y_offset)
+    print("matty", matty.x-name_x_offset-1, matty.y+name_y_offset)
+    print("athena", player.x-name_x_offset-3, player.y+name_y_offset)
+    print("charlie", charlie.x-name_x_offset-6, charlie.y+name_y_offset)
+    print("fear", intro_enemy.x-name_x_offset, intro_enemy.y+name_y_offset)
+    print("meanie", meanie.x-name_x_offset-4, meanie.y+name_y_offset)
 
 
     local instructions_y = 98
@@ -717,7 +718,7 @@ function _update_main()
     if you_win == true then
         time_since_wonnered = time_since_wonnered + 1
 
-        if time_since_wonnered > 1 then
+        if time_since_wonnered > 60*6 then
             _init_ending()
         end
     end
@@ -1165,14 +1166,14 @@ function draw_winning_things()
 end
 
 __gfx__
-00000000000398000000000005555500000000000004400000440000499999940000000000090000a0a0a0900800080000080000177717770000000000000000
-000000000aafaaa00009090076557650055555000004440000444000bbbb99404999999400a990000aaa99008880888000080000156715670000000000000000
-00700700aaff4f400003980065456550765576500004444000444440b8bbb999bbbb99400a0a0900aaa099908888878000070000155515550000000000000000
-000770000a3ffff00aafaaa06656650065456550000cfcf0000cfcf03bbbb3bbb8bbb999aaa099900a0009008888878000080000111111110000000000000000
-00077000aaee8899aaff4f400777755566566500000ffff0000ffff0bbbb43bb3bbbb3bb0a090900aaa099900888880000080000771777170000000000000000
-00700700ae877d600a3ffff0677775050777755500422f200002222030433bbbbbbb43bb00a990000aa999000088800000080000671567150000000000000000
-0000000008888880aaee889906000500677775050002222000422f2033440bb430433bbb00090000a09090900088800000080000551555150000000000000000
-0000000000090900ae877d600600050006000500000400f0000400f0033000bb33440bb400000000000000000008000000080000111111110000000000000000
+00000000000909000000000005555500000000000004400000440000499999940000000000090000a0a0a0900800080000080000177717770000000000000000
+00000000000398000009090076557650055555000004440000444000bbbb99404999999400a990000aaa99008880888000080000156715670000000000000000
+007007000aafaaa00003980065456550765576500004444000444440b8bbb999bbbb99400a0a0900aaa099908888878000070000155515550000000000000000
+00077000aaff4f400aafaaa06656650065456550000cfcf0000cfcf03bbbb3bbb8bbb999aaa099900a0009008888878000080000111111110000000000000000
+000770000a3ffff0aaff4f400777755566566500000ffff0000ffff0bbbb43bb3bbbb3bb0a090900aaa099900888880000080000771777170000000000000000
+00700700aaee88990a3ffff0677775050777755500422f200002222030433bbbbbbb43bb00a990000aa999000088800000080000671567150000000000000000
+00000000ae877d60aaee889906000500677775050002222000422f2033440bb430433bbb00090000a09090900088800000080000551555150000000000000000
+0000000008888880ae877d600600050006000500000400f0000400f0033000bb33440bb400000000000000000008000000080000111111110000000000000000
 0000000000000000555566666666666666667777000505000000dd0000000000000000003333333344444444eeeeeeee00000000000000000000077700000000
 000000000000090005006006006006006006007000055500000ddd0000ddddd00000000033343333444444444444444400000000000000000337779000000000
 0000000000a8d9680500600600600600600600700dd6ddd000dddd000d57dd570000000033333333343343333433433300000000000000003337799000000000
