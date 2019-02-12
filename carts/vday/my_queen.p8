@@ -57,6 +57,7 @@ blue_check_sprite = 64
 red_check_sprite = 65
 reposition_y = 0
 meanie_ymove = 0
+killa_pounce_speed = 2
 dragon_head_ymove = killa_pounce_speed
 intro_player_disabled = false
 intro_draw_cage = false
@@ -69,7 +70,6 @@ intro_text = {
     third_line = "    when all of a sudden...    "
 }
 
-killa_pounce_speed = 3
 time_since_wonnered = 0
 
 ground = {
@@ -85,11 +85,15 @@ function _init()
     player_start_y = bottom_floor_y
 
     -- debugging type settings below
-    local player_speed = 1
-    local player_start_x = 900
-    local player_start_y = top_floor_y
-    cam_y = 0
+    -- local player_speed = 7
+    -- local player_start_x = 950
+    -- local player_start_y = top_floor_y
+    -- cam_y = 0
 
+
+    -- local launch_scene = _init_main
+    -- local launch_scene =  _init_intro
+    local launch_scene =  _init_title
 
     player = make_entity("player", 1, player_start_x, player_start_y, 8, 8, player_speed, 2.8) -- bottom right (start)
     -- player = make_entity("player", 1, 10*8, 60*8, 8, 8, player_speed, 2.8) -- bottom left
@@ -128,33 +132,31 @@ function _init()
     door3.teleport_to_y = door_y + 8
     door3.cam_y_to = bottom_screen_cam_y
 
-    _init_main()
-    -- _init_intro()
-    -- _init_title()
+    launch_scene()
 
 end
 
 function _init_ending()
     ending_text = {}
 
-    ending_text[1] = "my queen"
+    ending_text[1] = "my queen!"
     ending_text[2] = ""
     ending_text[3] = ""
     ending_text[4] = ""
     ending_text[5] = ""
     ending_text[6] = "created by:"
-    ending_text[7] = "mATTHEW mCcORD"
+    ending_text[7] = "matthew mccord"
     ending_text[8] = ""
     ending_text[9] = ""
     ending_text[10] = ""
     ending_text[11] = ""
     ending_text[12] = "additional support by:"
-    ending_text[13] = "cHARLIE \"cHARLITO\" pEREZ-mCcORD"
+    ending_text[13] = "charlie \"charlito\" perez-mccord"
     ending_text[14] = ""
     ending_text[15] = ""
     ending_text[16] = ""
     ending_text[17] = ""
-    ending_text[18] = "started on Jan 30, 2019"
+    ending_text[18] = "started on jan 30, 2019"
     ending_text[19] = "made with love for vday 2019"
     ending_text[20] = ""
     ending_text[21] = ""
@@ -162,13 +164,31 @@ function _init_ending()
     ending_text[23] = ""
     ending_text[24] = ""
     ending_text[25] = "i love you!!"
-    ending_text[26] = "hAPPY vALENTINES dAY!"
+    ending_text[26] = "happy valentines day!"
 
     credits_x = 63
     credits_y = 128
 
-    -- credit_speed = 4
-    credit_speed = 3
+    player.x = 60
+    player.y = credits_y + 16
+
+    matty.x = 59
+    matty.y = credits_y + 16*7
+
+    charlie.x = 60
+    charlie.y = credits_y + 16*13
+
+    local cage_start_x = 40
+    local cage_start_y = credits_y + 16*26
+
+    meanie.x = 65
+    meanie.y = cage_start_y + 8
+
+    outro_enemy = make_entity("outro_enemy", 7, 56, cage_start_y + 8, 8, 8, 0.25, 1)
+
+
+    -- credit_speed = 1
+    credit_speed = 4
     -- credits_x = 0
     -- credits_y = 0
 
@@ -207,14 +227,27 @@ function _update_ending()
             for item in all(credits) do
                 item.y = item.y - 1
             end
+
+            player.y = player.y - 1
+            matty.y = matty.y - 1
+            charlie.y = charlie.y - 1
+            meanie.y = meanie.y - 1
+            outro_enemy.y = outro_enemy.y - 1
+        else
+            make_heart(32, 136)
+            make_heart(96, 136)
+            make_heart(32, 136)
+            make_heart(96, 136)
         end
     end
+
+    update_hearts()
 end
 
 function _draw_ending()
     cls()
-    draw_checkered_bg()
-    debug_info()
+    -- draw_checkered_bg()
+    -- debug_info()
 
     for item in all(credits) do
         if not (item.y < 0) then
@@ -223,6 +256,24 @@ function _draw_ending()
             print(item.text, item.x, item.y, 7)
         end
     end
+
+    update_frames(player)
+    update_frames(matty)
+    update_frames(charlie)
+    update_frames(meanie)
+    update_frames(outro_enemy)
+
+    draw_player()
+    spr(matty.sprite, matty.x, matty.y)
+    spr(charlie.sprite, charlie.x, charlie.y)
+
+    draw_meanie()
+    spr(outro_enemy.sprite, outro_enemy.x, outro_enemy.y)
+    draw_ending_cage()
+
+    draw_hearts()
+
+    rect(0, 0, 127, 127, 13)
 end
 
 function _init_title()
@@ -308,11 +359,11 @@ function _draw_title()
 
     local name_x_offset = 4
     local name_y_offset = 10
-    print("mATTY", matty.x-name_x_offset-1, matty.y+name_y_offset)
-    print("aTHENA", player.x-name_x_offset-3, player.y+name_y_offset)
-    print("cHARLIE", charlie.x-name_x_offset-6, charlie.y+name_y_offset)
-    print("fEAR", intro_enemy.x-name_x_offset, intro_enemy.y+name_y_offset)
-    print("mEANIE", meanie.x-name_x_offset-4, meanie.y+name_y_offset)
+    print("matty", matty.x-name_x_offset-1, matty.y+name_y_offset)
+    print("athena", player.x-name_x_offset-3, player.y+name_y_offset)
+    print("charlie", charlie.x-name_x_offset-6, charlie.y+name_y_offset)
+    print("fear", intro_enemy.x-name_x_offset, intro_enemy.y+name_y_offset)
+    print("meanie", meanie.x-name_x_offset-4, meanie.y+name_y_offset)
 
 
     local instructions_y = 98
@@ -719,6 +770,7 @@ function _update_main()
         time_since_wonnered = time_since_wonnered + 1
 
         if time_since_wonnered > 60*6 then
+        -- if time_since_wonnered > 1 then
             _init_ending()
         end
     end
@@ -1090,6 +1142,18 @@ function draw_cage()
     spr(36, matty.x + 8 - 1, matty.y) -- cage right bottom
 end
 
+function draw_ending_cage()
+    spr(18, outro_enemy.x - 8, outro_enemy.y - 8) -- cage left top
+    spr(19, outro_enemy.x, outro_enemy.y - 8) -- cage middle top
+    spr(19, meanie.x - 1, meanie.y - 8) -- cage middle top
+    spr(20, meanie.x + 8 - 1, meanie.y - 8) -- cage right top
+
+    spr(34, outro_enemy.x - 8, outro_enemy.y) -- cage left bottom
+    spr(35, outro_enemy.x, outro_enemy.y) -- cage middle bottom
+    spr(35, meanie.x - 1, meanie.y) -- cage middle bottom
+    spr(36, meanie.x + 8 - 1, meanie.y) -- cage right bottom
+end
+
 function draw_matty_and_charles()
     local should_flip = update_state == _update_intro
 
@@ -1331,23 +1395,23 @@ __sfx__
 000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 001200001203000000120300000012030000001203000000130300000013030000001303000000130300000015030000001503000000150300000015030000001703000000170300000017030000001703000000
 001200001e7221e1221e7221e122000000000000000000001f7221f1221f7221f12200000000000000000000211222112221122211221f1221f1221f1221f1222372223122237222312200000000000000000000
-001200000000000000000000663500000000000663506200000000000006600000000000006635000000663500000000000000006635000000000006635062000000000000066000000000000066350663506635
-0018000018533185321853218532185321853218532185001f5321f5321f5321f5321f5321f5321f532000001d5321d5321d5321d5321d5321d5321d532000001c5321c5321c5321c5321c5321c5321c5321c532
+001200000000000000066350663500000000000663506200000000000006635000000000006635000000663500000000000663506635000000000006635062000000000000066350000000000066350663506635
+0018000018532185321853218532185321853218532185001f5321f5321f5321f5321f5321f5321f532000001d5321d5321d5321d5321d5321d5321d532000001c5321c5321c5321c5321c5321c5321c5321c532
 001800000000000000066050662506625000000662506200000000000006600066250660000000066250660000000000000660506625066250000006625062000000000000066000662506600000000662506600
-001800001c5311c5321c5321c5321c5321c5321c53200000245322453224532245322453224532245320000021532215322153221532215322153221532245112451124511245112451123521235212352123521
+001800001c5311c5321c5321c5321c5321c5321c53200000245322453224532245322453224532245320000021532215322153221532215322153221532245112451124511245112451123521235212352123500
 001a00001105512055110551205511055120551105512055130551405513055140551305214052130521405211055120551105512055110551205511055120551305514055130551405513052140521305214052
-001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+001200001c000000001c033000001c000000001c033000001c000000001c033000001c000000001c033000001c000000001c033000001c000000001c033000001c000000001c033000001c000000001c03300000
+001800001c5311c5321c5321c5321c5321c5321c53200000245322453224532245322453224532245320000021532215322153221532215322153221532245002453224532245322450023532235322353223500
 000800000457004630015700200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 000800000357004630065700463000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 0002000007140091500d1501014013140181401e140241302a1303413039120000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 001000000d05000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 __music__
 00 01024344
-01 01024344
-00 01024344
-00 01020344
-02 01020344
+01 01020844
+00 01020844
+00 01020308
+02 01020308
 00 41424344
 00 41424344
 00 41424344
@@ -1363,8 +1427,8 @@ __music__
 00 41424344
 00 41424344
 00 41424344
-01 04064544
-03 04060544
+01 04094544
+02 04064544
 00 41424344
 00 41424344
 00 41424344
