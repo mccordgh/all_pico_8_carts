@@ -84,8 +84,8 @@ function _init()
     player_start_x = 125*8
     player_start_y = bottom_floor_y
 
-    -- debugging type settings below
-    -- local player_speed = 7
+    -- uncomment lines below and change launch_scene to init_main() instead of init_title() to test credits.
+    -- player_speed = 7
     -- local player_start_x = 950
     -- local player_start_y = top_floor_y
     -- cam_y = 0
@@ -133,7 +133,6 @@ function _init()
     door3.cam_y_to = bottom_screen_cam_y
 
     launch_scene()
-
 end
 
 function _init_ending()
@@ -157,14 +156,14 @@ function _init_ending()
     ending_text[16] = ""
     ending_text[17] = ""
     ending_text[18] = "started on jan 30, 2019"
-    ending_text[19] = "made with love for vday 2019"
-    ending_text[20] = ""
+    ending_text[19] = "made with love for my awesome"
+    ending_text[20] = "partner as a vday 2019 gift"
     ending_text[21] = ""
     ending_text[22] = ""
     ending_text[23] = ""
     ending_text[24] = ""
-    ending_text[25] = "i love you!!"
-    ending_text[26] = "happy valentines day!"
+    ending_text[25] = "have a happy"
+    ending_text[26] = "valentines day!"
 
     credits_x = 63
     credits_y = 128
